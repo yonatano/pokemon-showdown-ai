@@ -11,15 +11,17 @@ def download_moves():
     num_moves = 639
     movelist = requests.get("http://pokeapi.co/api/v2/move/?limit=%s" % num_moves)
     movelist = movelist.json()['results']
-    moves = []
+    moves = {}
 
     for i,m in enumerate(movelist):
         print "getting move %s %s/%s" % (m['name'], i, num_moves)
-        r = requests.get(m['url'])
-        moves.append(r.json())
+        r = requests.get(m['url']).json()
+        r['power'] = 0 if not r['power']
+        moves[r['name']] = r
+
         sleep(200 / 1000.0)
 
-    f = open('movelist.json', 'w')
+    f = open('moves.json', 'w')
     f.write(json.dumps(moves, indent=4))
     f.close()
 
