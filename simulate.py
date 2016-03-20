@@ -12,9 +12,10 @@ type_names = types.keys()
 
 def calc_damage(attacker, defender, move, crit):
     "calculate modifier and damage"
-    stab = (move.type == attacker.type) ? 1.5 : 1
+    stab = 1.5 if (move.type == attacker.type) else 1
     type_ = reduce(operator.mul, [types[move.type][type_names.index(t)] for t in defender.types])
     #crit = (random.uniform(0, 1.0) < 1/16.0) ? 2 : 1
+    crit = 2 if crit else 1
     rand = random.uniform(0.85, 1.0)
     modifier = stab * type_ * crit * rand
     damage = (2 * attacker.level + 10) / 250.0 * attacker.atk / attacker.def * move.base + 2

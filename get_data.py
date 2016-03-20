@@ -1,3 +1,4 @@
+from time import sleep
 import re
 import requests
 import simplejson as json
@@ -5,6 +6,22 @@ from lxml import html
 
 
 LADDERS = ['uu', 'ubers', 'ou', 'ru', 'nu', 'pu']
+
+def download_moves():
+    num_moves = 639
+    movelist = requests.get("http://pokeapi.co/api/v2/move/?limit=%s" % num_moves)
+    movelist = movelist.json()['results']
+    moves = []
+
+    for i,m in enumerate(movelist):
+        print "getting move %s %s/%s" % (m['name'], i, num_moves)
+        r = requests.get(m['url'])
+        moves.append(r.json())
+        sleep(200 / 1000.0)
+
+    f = open('movelist.json', 'w')
+    f.write(json.dumps(moves, indent=4))
+    f.close()
 
 def download_ladder(ladder_type):
     URL = "http://pokemonshowdown.com/ladder/%s" % ladder_type
@@ -49,6 +66,4 @@ if __name__ == "__main__":
     ladders = {l:download_ladder(l) for l in LADDERS[:1]}
     f.write(json.dumps(ladders, indent=4, sort_keys=True))
     """
-
-    #replay_urls = get_replay_urls('pokemonisfun')
-    get_format_replay("")
+    download_moves()
