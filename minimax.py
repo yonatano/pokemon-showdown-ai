@@ -30,9 +30,10 @@ def next_states(gamestate, ai_turn=True):
 
     if gamestate[curr] is None: #active pokemon fainted last turn
         states_swap = transform_state_swap(gamestate, ai_turn)
-        for state in states_swap: #force a swap and then attack
-            states_attack = transform_state_attack(state)
-            next_states.extend(states_attack)
+        for state in states_swap: #force a swap and then attack or swap
+            states_attack = transform_state_attack(state, ai_turn)
+            states_swap = transform_state_swap(state, ai_turn)
+            next_states.extend(states_attack + states_swap)
     else: #possible moves are attack with active or swap it out
         states_attack = transform_state_attack(gamestate, ai_turn)
         states_swap = transform_state_swap(gamestate, ai_turn)
