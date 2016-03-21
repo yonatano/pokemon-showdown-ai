@@ -7,7 +7,7 @@ Board State:
 import copy
 import simulate
 MAX_DEPTH = 10
-TEAMSZ = 2
+TEAMSZ = 6
 
 def eval_function(gamestate):
     team1,team2 = gamestate[:TEAMSZ], gamestate[TEAMSZ:]
@@ -82,6 +82,7 @@ class Node:
     def __init__(self, gamestate):
         self.gamestate = copy.deepcopy(gamestate)
         self.value = 0
+        self.candidate_move = 0
         self.children = []
 
     def backprop(self, max_=True):
@@ -111,12 +112,10 @@ def generate_tree(startstate, ai_turn=True, depth=MAX_DEPTH):
     tree = Node(startstate)
     curr = [tree]
     for i in range(depth):
-        print "DEPTH: %s" % i
         for c in curr:
             c.populate_children(ai_turn)
         curr_ = []
         [curr_.extend(c.children) for c in curr]
         curr = curr_
-        print "%s children" % len(curr)
         ai_turn = not ai_turn
     return tree

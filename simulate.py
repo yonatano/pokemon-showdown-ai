@@ -57,9 +57,9 @@ class Move:
 
 def gen_team():
     team = []
-    for i in range(2):
+    for i in range(6):
         team.append(Pokemon('pikachu%s' % i, 100, 411, 146, 116, 136, 136, 216, ['electric'], ['thunder', 'thunder-punch']))
-    for i in range(2):
+    for i in range(6):
         team.append(Pokemon('gengar%s' % i, 100, 261, 166, 156, 296, 186, 256, ['ghost', 'poison'], ['shadow-ball', 'shadow-punch']))
     #arceus = Pokemon('arceus', 100, 381, 276, 276, 276, 276, 276, ['normal'], ['judgment', 'acrobatics'])
     return team
