@@ -10,12 +10,15 @@ MAX_DEPTH = 10
 TEAMSZ = 2
 
 def eval_function(gamestate):
-    hp = [p.hp for p in gamestate if p is not None]
-    t_hp = [p.totalhp for p in gamestate if p is not None]
-    diff_hp = sum(hp[TEAMSZ:]) - sum(hp[:TEAMSZ])
-    diff_hp /= float(max(sum(t_hp[TEAMSZ:]), sum(t_hp[:TEAMSZ]))) #normalize
+    team1,team2 = gamestate[:TEAMSZ], gamestate[TEAMSZ:]
 
-    diff_faint = gamestate[TEAMSZ:].count(None) - gamestate[:TEAMSZ].count(None)
+    #penalize ai for pokemon with low % of total hp
+    hp_ratio_1 = [float(p.hp) / p.totalhp for p in team1 if p is not None]
+    hp_ratio_2 = [float(p.hp) / p.totalhp for p in team2 if p is not None]
+    diff_hp = sum(hp_ratio_1) / len(hp_ratio_1) - sum(hp_ratio_2) / len(hp_ratio_2)
+
+    #penalize ai for fainted pokemon
+    diff_faint = team1.count(None) - team2.count(None)
     diff_faint /= float(TEAMSZ) #normalize
 
     return diff_hp + diff_faint
