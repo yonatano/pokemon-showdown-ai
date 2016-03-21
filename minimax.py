@@ -34,8 +34,8 @@ def next_states(gamestate, ai_turn=True):
             states_attack = transform_state_attack(state)
             next_states.extend(states_attack)
     else: #possible moves are attack with active or swap it out
-        states_attack = tranform_state_attack(gamestate, ai_turn)
-        states_swap = tranform_state_swap(gamestate, ai_turn)
+        states_attack = transform_state_attack(gamestate, ai_turn)
+        states_swap = transform_state_swap(gamestate, ai_turn)
         next_states.extend(states_attack + states_swap)
     return next_states
 
@@ -57,7 +57,6 @@ def transform_state_attack(gamestate, ai_turn=True):
         next_states.append(next_)
 
     return next_states
-
 
 def transform_state_swap(gamestate, ai_turn=True):
     """
