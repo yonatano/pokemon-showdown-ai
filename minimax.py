@@ -7,10 +7,18 @@ Board State:
 import copy
 import simulate
 MAX_DEPTH = 10
-TEAMSZ = 1
+TEAMSZ = 2
 
 def eval_function(gamestate):
-    return gamestate[TEAMSZ:].count(None) - gamestate[:TEAMSZ].count(None)
+    hp = [p.hp for p in gamestate if p is not None]
+    t_hp = [p.totalhp for p in gamestate if p is not None]
+    diff_hp = sum(hp[TEAMSZ:]) - sum(hp[:TEAMSZ])
+    diff_hp /= float(max(sum(t_hp[TEAMSZ:]), sum(t_hp[:TEAMSZ]))) #normalize
+
+    diff_faint = gamestate[TEAMSZ:].count(None) - gamestate[:TEAMSZ].count(None)
+    diff_faint /= float(TEAMSZ) #normalize
+
+    return diff_hp + diff_faint
 
 def next_states(gamestate, ai_turn=True):
     """
@@ -18,37 +26,54 @@ def next_states(gamestate, ai_turn=True):
     Swap active pokemon with any other non-fainted pokemon
     """
     curr, opponent = 0 if ai_turn else TEAMSZ, TEAMSZ if ai_turn else 0
-    next = []
-    if gamestate[curr] is None: #the active pokemon fainted last turn -- swap
-        print "active pokemon fainted"
-        for i,pokemon in enumerate(gamestate[curr+1:curr+TEAMSZ]):
-            if pokemon is not None:
-                next_ = copy.deepcopy(gamestate)
-                next_[curr+i+1],next_[curr] = next_[curr],next_[curr+i+1]
-                
-                for m in next_[curr].moves:
-                    next_atk = copy.deepcopy(next_)
-                    dmg = simulate.calc_damage(next_[curr], next_[opponent], m)
-                    next_atk[opponent].hp -= dmg
-                    if next_atk[opponent].hp <= 0:
-                        next_atk[opponent] = None
-                    next.append(next_atk)
-    else: 
-        for m in gamestate[curr].moves:
-            next_ = copy.deepcopy(gamestate)
-            dmg = simulate.calc_damage(next_[curr], next_[opponent], m)
-            #print "%s dealt %s dmg to %s" % (next_[curr], dmg, next_[opponent])
-            next_[opponent].hp -= dmg
-            if next_[opponent].hp <= 0:
-                next_[opponent] = None
-            next.append(next_)
+    next_states = []
 
-        for i,pokemon in enumerate(gamestate[curr+1:curr+TEAMSZ]):
-            if pokemon is not None:
-                next_ = copy.deepcopy(gamestate)
-                next_[curr+i+1],next_[curr] = next_[curr],next_[curr+i+1]
-                next.append(next_)
-    return next
+    if gamestate[curr] is None: #active pokemon fainted last turn
+        states_swap = transform_state_swap(gamestate, ai_turn)
+        for state in states_swap: #force a swap and then attack
+            states_attack = transform_state_attack(state)
+            next_states.extend(states_attack)
+    else: #possible moves are attack with active or swap it out
+        states_attack = tranform_state_attack(gamestate, ai_turn)
+        states_swap = tranform_state_swap(gamestate, ai_turn)
+        next_states.extend(states_attack + states_swap)
+    return next_states
+
+def transform_state_attack(gamestate, ai_turn=True):
+    """
+    Given a game state, transform such that active pokemon 
+    uses each of its moves.
+    """
+    curr, opp = 0 if ai_turn else TEAMSZ, TEAMSZ if ai_turn else 0
+    next_states = []
+
+    active_pokemon = gamestate[curr]
+    for move in active_pokemon.moves:
+        next_ = copy.deepcopy(gamestate)
+        dmg = simulate.calc_damage(active_pokemon, next_[opp], move)
+        next_[opp].hp -= dmg
+        if next_[opp].hp <= 0:
+            next_[opp] = None
+        next_states.append(next_)
+
+    return next_states
+
+
+def transform_state_swap(gamestate, ai_turn=True):
+    """
+    Given a game state, transform such that active pokemon is swapped 
+    with every other non-fainted pokemon.
+    """
+    curr, opp = 0 if ai_turn else TEAMSZ, TEAMSZ if ai_turn else 0
+    next_states = []
+
+    for i,pokemon in enumerate(gamestate[curr+1:curr+TEAMSZ]):
+        if pokemon is not None:
+            next_ = copy.deepcopy(gamestate)
+            next_[curr+i+1],next_[curr] = next_[curr],next_[curr+i+1]
+            next_states.append(next_)
+
+    return next_states
 
 class Node:
     def __init__(self, gamestate):
