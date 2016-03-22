@@ -3,3 +3,4 @@
 research
 data/*
 *.data
+application/ghostdriver.log
