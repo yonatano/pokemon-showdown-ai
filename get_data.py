@@ -16,7 +16,7 @@ def download_moves():
     for i,m in enumerate(movelist):
         print "getting move %s %s/%s" % (m['name'], i, num_moves)
         r = requests.get(m['url']).json()
-        r['power'] = 0 if not r['power']
+        r['power'] = 0 if not r['power'] else r['power']
         moves[r['name']] = r
 
         sleep(200 / 1000.0)
