@@ -18,7 +18,7 @@ def eval_function(gamestate):
     diff_hp = sum(hp_ratio_1) / len(hp_ratio_1) - sum(hp_ratio_2) / len(hp_ratio_2)
 
     #penalize ai for fainted pokemon
-    diff_faint = team1.count(None) - team2.count(None)
+    diff_faint = team2.count(None) - team1.count(None)
     diff_faint /= float(TEAMSZ) #normalize
 
     return diff_hp + diff_faint
