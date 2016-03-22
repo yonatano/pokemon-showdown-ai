@@ -58,15 +58,16 @@ def transform_state_attack(gamestate, ai_turn=True):
     next_states = []
 
     active_pokemon = gamestate[curr]
-    for move in active_pokemon.moves:
-        next_ = copy.deepcopy(gamestate)
-        dmg = simulate.calc_damage(active_pokemon, next_[opp], move)
-        next_[opp].hp -= dmg
-        desc = "%s used %s on %s" % (active_pokemon.name, move.name, next_[opp].name)
-        if next_[opp].hp <= 0:
-            desc += " | %s fainted." % next_[opp].name
-            next_[opp] = None
-        next_states.append([next_, desc])
+    for i,move in enumerate(active_pokemon.moves):
+        if move.pp > 0:
+            next_ = copy.deepcopy(gamestate)
+            dmg = simulate.calc_damage(active_pokemon, next_[opp], move)
+            next_[curr].moves[i].pp -= 1
+            next_[opp].hp -= dmg
+            desc = "%s used %s on %s" % (active_pokemon.name, move.name, next_[opp].name)
+            if next_[opp].hp <= 0:
+                next_[opp] = None
+            next_states.append([next_, desc])
 
     return next_states
 
