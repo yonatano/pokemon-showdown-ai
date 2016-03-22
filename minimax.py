@@ -7,7 +7,10 @@ Board State:
 import copy
 import simulate
 MAX_DEPTH = 10
-TEAMSZ = 6
+TEAMSZ = 3
+
+def avg(l):
+    return sum(l) / float(l) if len(l) > 0 else 0
 
 def eval_function(gamestate):
     team1,team2 = gamestate[:TEAMSZ], gamestate[TEAMSZ:]
@@ -15,7 +18,7 @@ def eval_function(gamestate):
     #penalize ai for pokemon with low % of total hp
     hp_ratio_1 = [float(p.hp) / p.totalhp for p in team1 if p is not None]
     hp_ratio_2 = [float(p.hp) / p.totalhp for p in team2 if p is not None]
-    diff_hp = sum(hp_ratio_1) / len(hp_ratio_1) - sum(hp_ratio_2) / len(hp_ratio_2)
+    diff_hp = avg(hp_ratio_1) - avg(hp_ratio_2)
 
     #penalize ai for fainted pokemon
     diff_faint = team2.count(None) - team1.count(None)
@@ -33,10 +36,13 @@ def next_states(gamestate, ai_turn=True):
 
     if gamestate[curr] is None: #active pokemon fainted last turn
         states_swap = transform_state_swap(gamestate, ai_turn)
-        for state in states_swap: #force a swap and then attack or swap
+        for state, desc in states_swap: #force a swap and then attack or swap
             states_attack = transform_state_attack(state, ai_turn)
             states_swap = transform_state_swap(state, ai_turn)
-            next_states.extend(states_attack + states_swap)
+            states_total = states_attack + states_swap
+            for state_ in states_total:
+                state_[1] = "%s %s" % (desc, state_[1])
+            next_states.extend(states_total)
     else: #possible moves are attack with active or swap it out
         states_attack = transform_state_attack(gamestate, ai_turn)
         states_swap = transform_state_swap(gamestate, ai_turn)
@@ -56,9 +62,11 @@ def transform_state_attack(gamestate, ai_turn=True):
         next_ = copy.deepcopy(gamestate)
         dmg = simulate.calc_damage(active_pokemon, next_[opp], move)
         next_[opp].hp -= dmg
+        desc = "%s used %s on %s" % (active_pokemon.name, move.name, next_[opp].name)
         if next_[opp].hp <= 0:
+            desc += " | %s fainted." % next_[opp].name
             next_[opp] = None
-        next_states.append(next_)
+        next_states.append([next_, desc])
 
     return next_states
 
@@ -73,17 +81,23 @@ def transform_state_swap(gamestate, ai_turn=True):
     for i,pokemon in enumerate(gamestate[curr+1:curr+TEAMSZ]):
         if pokemon is not None:
             next_ = copy.deepcopy(gamestate)
+            if next_[curr] is not None:
+                desc = "%s was swapped with %s" % (next_[curr].name, next_[curr+i+1].name)
+            else:
+                desc = "%s was swapped in." % (next_[curr+i+1].name)
+
             next_[curr+i+1],next_[curr] = next_[curr],next_[curr+i+1]
-            next_states.append(next_)
+            next_states.append([next_, desc])
 
     return next_states
 
 class Node:
-    def __init__(self, gamestate):
+    def __init__(self, gamestate, description=""):
         self.gamestate = copy.deepcopy(gamestate)
         self.value = 0
         self.candidate_move = 0
         self.children = []
+        self.description = description
 
     def backprop(self, max_=True):
         """recursively calculate tree max/min's"""
@@ -96,10 +110,10 @@ class Node:
 
     def populate_children(self, ai_turn=True):
         for state in next_states(self.gamestate, ai_turn):
-            self.children.append(Node(state))
+            self.children.append(Node(state[0], state[1]))
 
     def __str__(self, level=0):
-        ret = "\t" * level + "{state:%s, val:%s}\n" % (str(self.gamestate), 
+        ret = "\t" * level + "{%s, val:%s}\n" % (str(self.description), 
                                                            str(self.value))
         for c in self.children:
             ret += c.__str__(level+1)
@@ -119,3 +133,9 @@ def generate_tree(startstate, ai_turn=True, depth=MAX_DEPTH):
         curr = curr_
         ai_turn = not ai_turn
     return tree
+
+def move_for_gamestate(gamestate, depth=MAX_DEPTH):
+    tree = generate_tree(gamestate, True, depth)
+    tree.backprop()
+    best_move = [c for c in tree.children if c.value == tree.value][0]
+    return best_move.description

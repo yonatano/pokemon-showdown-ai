@@ -57,11 +57,17 @@ class Move:
 
 def gen_team():
     team = []
-    for i in range(6):
-        team.append(Pokemon('pikachu%s' % i, 100, 411, 146, 116, 136, 136, 216, ['electric'], ['thunder', 'thunder-punch']))
-    for i in range(6):
-        team.append(Pokemon('gengar%s' % i, 100, 261, 166, 156, 296, 186, 256, ['ghost', 'poison'], ['shadow-ball', 'shadow-punch']))
+    # for i in range(6):
+    #     team.append(Pokemon('charizard%s' % i, 100, 297, 204, 192, 254, 206, 236, ['flying', 'fire'], ['acrobatics', 'dragon-pulse', 'flamethrower', 'focus-blast']))
+    # for i in range(6):
+    #     team.append(Pokemon('dragonite%s' % i, 85, 276, 259, 192, 201, 201, 167, ['flying', 'dragon'], ['dragon-claw', 'dragon-pulse', 'superpower', 'aqua-tail']))
     #arceus = Pokemon('arceus', 100, 381, 276, 276, 276, 276, 276, ['normal'], ['judgment', 'acrobatics'])
+    team.append(Pokemon('rayquaza', 100, 351, 336, 216, 336, 216, 226, ['dragon', 'flying'], ['draco-meteor', 'earthquake', 'dragon-ascent', 'extreme-speed']))
+    team.append(Pokemon('lucario', 100, 281, 256, 176, 266, 176, 216, ['fighting', 'steel'], ['shadow-ball', 'close-combat', 'bullet-punch', 'crunch']))
+    team.append(Pokemon('giratina', 100, 441, 259, 276, 212, 276, 216, ['dragon', 'ghost'], ['draco-meteor', 'earthquake', 'dragon-ascent', 'extreme-speed']))
+    team.append(Pokemon('dragonite', 85, 276, 259, 192, 201, 201, 167, ['flying', 'dragon'], ['dragon-claw', 'dragon-pulse', 'superpower', 'aqua-tail']))
+    team.append(Pokemon('heracross', 100, 301, 286, 186, 116, 226, 206, ['fighting', 'bug'], ['brick-break', 'tackle', 'body-slam', 'megahorn']))
+    team.append(Pokemon('cubone', 100, 241, 136, 226, 116, 136, 106, ['ground'], ['earthquake', 'fire-blast', 'fire-punch', 'body-slam']))
     return team
 
 
