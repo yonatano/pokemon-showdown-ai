@@ -7,8 +7,8 @@ import numpy as np
 import simplejson as json
 
 
-types = json.loads(open('type.json', 'r').read())
-moves = json.loads(open('moves.json', 'r').read())
+types = json.loads(open('data/type.json', 'r').read())
+moves = json.loads(open('data/moves.json', 'r').read())
 type_names = sorted(types.keys())
 
 def calc_damage(attacker, defender, move, crit=False):

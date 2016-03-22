@@ -1,6 +1,6 @@
 .env
 *.pyc
 research
-data/*
+data/*.json
 *.data
 application/ghostdriver.log
