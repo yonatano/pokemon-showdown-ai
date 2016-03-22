@@ -1,7 +1,5 @@
 .env
 *.pyc
 research
-type.json
-pokemon.json
-ladders.json
-moves.json
+data/*
+*.data

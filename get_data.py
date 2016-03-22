@@ -38,10 +38,10 @@ def get_replay_urls(user):
     return xml.xpath('//ul[@class="linklist"]/li/a/@href')
 
 def get_and_format_replay(replay_url):
-    #URL = "http://replay.pokemonshowdown.com/%s" % replay_url
-    #page = requests.get(URL)
-    #xml = html.fromstring(page.content)
-    #replay_raw = xml.xpath('//script[@class="log"]')
+    URL = "http://replay.pokemonshowdown.com/%s" % replay_url
+    page = requests.get(URL)
+    xml = html.fromstring(page.content)
+    replay_raw = xml.xpath('//script[@class="log"]')
 
     replay_raw = True #delme
 
