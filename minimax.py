@@ -10,7 +10,7 @@ MAX_DEPTH = 10
 TEAMSZ = 3
 
 def avg(l):
-    return sum(l) / float(l) if len(l) > 0 else 0
+    return sum(l) / float(len(l)) if len(l) > 0 else 0
 
 def eval_function(gamestate):
     team1,team2 = gamestate[:TEAMSZ], gamestate[TEAMSZ:]
