@@ -10,9 +10,11 @@ import simplejson as json
 types = json.loads(open('data/type.json', 'r').read())
 moves = json.loads(open('data/moves.json', 'r').read())
 type_names = sorted(types.keys())
+AVG_POKEMON = Pokemon('heracross', 100, 200, 286, 186, 116, 226, 206, ['fighting', 'bug'], ['brick-break', 'tackle', 'body-slam', 'megahorn'], False)
 
 def calc_damage(attacker, defender, move, crit=False):
     "calculate modifier and damage"
+    defender.affected = True
     stab = 1.5 if (move.type_ in attacker.types) else 1
     atk = attacker.spatk if (move.type_ in attacker.types) else attacker.atk
     def_ = attacker.spdef if (move.type_ in attacker.types) else attacker.def_
@@ -27,7 +29,7 @@ def calc_damage(attacker, defender, move, crit=False):
     return int(damage)
 
 class Pokemon:
-    def __init__(self, name, lvl, hp, atk, def_, spatk, spdef, speed, types, move_names):
+    def __init__(self, name, lvl, hp, atk, def_, spatk, spdef, speed, types, move_names, known=True, affected=False):
         self.name = name
         self.lvl = lvl
         self.hp = hp
@@ -39,6 +41,8 @@ class Pokemon:
         self.speed = speed
         self.types = types
         self.moves = [Move(name) for name in move_names]
+        self.known = known
+        self.affected = affected
 
     def __repr__(self):
         return "<%s>" % self.__str__()
@@ -62,13 +66,34 @@ def gen_team():
     # for i in range(6):
     #     team.append(Pokemon('dragonite%s' % i, 85, 276, 259, 192, 201, 201, 167, ['flying', 'dragon'], ['dragon-claw', 'dragon-pulse', 'superpower', 'aqua-tail']))
     #arceus = Pokemon('arceus', 100, 381, 276, 276, 276, 276, 276, ['normal'], ['judgment', 'acrobatics'])
-    team.append(Pokemon('rayquaza', 100, 351, 336, 216, 336, 216, 226, ['dragon', 'flying'], ['draco-meteor', 'earthquake', 'dragon-ascent', 'extreme-speed']))
-    team.append(Pokemon('lucario', 100, 281, 256, 176, 266, 176, 216, ['fighting', 'steel'], ['shadow-ball', 'close-combat', 'bullet-punch', 'crunch']))
+    team.append(Pokemon('rayquaza', 100, 351, 200, 216, 336, 216, 226, ['dragon', 'flying'], ['draco-meteor', 'earthquake', 'dragon-ascent', 'extreme-speed']))
+    team.append(Pokemon('lucario', 100, 281, 200, 176, 266, 176, 216, ['fighting', 'steel'], ['shadow-ball', 'close-combat', 'bullet-punch', 'crunch']))
     team.append(Pokemon('giratina', 100, 441, 259, 276, 212, 276, 216, ['dragon', 'ghost'], ['draco-meteor', 'earthquake', 'dragon-ascent', 'extreme-speed']))
     team.append(Pokemon('dragonite', 85, 276, 259, 192, 201, 201, 167, ['flying', 'dragon'], ['dragon-claw', 'dragon-pulse', 'superpower', 'aqua-tail']))
     team.append(Pokemon('heracross', 100, 301, 286, 186, 116, 226, 206, ['fighting', 'bug'], ['brick-break', 'tackle', 'body-slam', 'megahorn']))
     team.append(Pokemon('cubone', 100, 241, 136, 226, 116, 136, 106, ['ground'], ['earthquake', 'fire-blast', 'fire-punch', 'body-slam']))
+
+    team.append(Pokemon('mewtwo', 100, 200, 200, 216, 336, 216, 226, ['dragon', 'flying'], ['tackle', 'earthquake', 'dragon-ascent', 'extreme-speed']))
+    team.append(Pokemon('cat', 100, 200, 200, 176, 266, 176, 216, ['fighting', 'steel'], ['shadow-ball', 'close-combat', 'bullet-punch', 'crunch']))
+    team.append(Pokemon('dog', 100, 200, 259, 276, 212, 276, 216, ['dragon', 'ghost'], ['draco-meteor', 'earthquake', 'dragon-ascent', 'extreme-speed']))
+    team.append(Pokemon('log', 85, 200, 259, 192, 201, 201, 167, ['flying', 'dragon'], ['dragon-claw', 'dragon-pulse', 'superpower', 'aqua-tail']))
+    team.append(Pokemon('rock', 100, 200, 286, 186, 116, 226, 206, ['fighting', 'bug'], ['brick-break', 'tackle', 'body-slam', 'megahorn']))
+    team.append(Pokemon('paper', 100, 200, 136, 226, 116, 136, 106, ['ground'], ['earthquake', 'fire-blast', 'fire-punch', 'body-slam']))
     return team
+
+def rand_team():
+    team = []
+    team.append(Pokemon('rayquaza', 100, 200, 200, 216, 336, 216, 226, ['dragon', 'flying'], ['tackle', 'earthquake', 'dragon-ascent', 'extreme-speed']))
+    team.append(Pokemon('lucario', 100, 200, 200, 176, 266, 176, 216, ['fighting', 'steel'], ['shadow-ball', 'close-combat', 'bullet-punch', 'crunch']))
+    team.append(Pokemon('giratina', 100, 200, 259, 276, 212, 276, 216, ['dragon', 'ghost'], ['draco-meteor', 'earthquake', 'dragon-ascent', 'extreme-speed']))
+    team.append(Pokemon('dragonite', 85, 200, 259, 192, 201, 201, 167, ['flying', 'dragon'], ['dragon-claw', 'dragon-pulse', 'superpower', 'aqua-tail']))
+    team.append(Pokemon('pikachu', 100, 200, 286, 186, 116, 226, 206, ['fighting', 'bug'], ['brick-break', 'tackle', 'body-slam', 'megahorn']))
+    team.append(Pokemon('squirtle', 100, 200, 136, 226, 116, 136, 106, ['ground'], ['earthquake', 'fire-blast', 'fire-punch', 'body-slam']))
+
+    team.append(Pokemon('mewtwo', 100, 200, 200, 216, 336, 216, 226, ['dragon', 'flying'], ['tackle', 'earthquake', 'dragon-ascent', 'extreme-speed']))
+    
+    return team
+
 
 
 
