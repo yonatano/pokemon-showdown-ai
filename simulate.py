@@ -10,7 +10,6 @@ import simplejson as json
 types = json.loads(open('data/type.json', 'r').read())
 moves = json.loads(open('data/moves.json', 'r').read())
 type_names = sorted(types.keys())
-AVG_POKEMON = Pokemon('heracross', 100, 200, 286, 186, 116, 226, 206, ['fighting', 'bug'], ['brick-break', 'tackle', 'body-slam', 'megahorn'], False)
 
 def calc_damage(attacker, defender, move, crit=False):
     "calculate modifier and damage"
@@ -29,7 +28,7 @@ def calc_damage(attacker, defender, move, crit=False):
     return int(damage)
 
 class Pokemon:
-    def __init__(self, name, lvl, hp, atk, def_, spatk, spdef, speed, types, move_names, known=True, affected=False):
+    def __init__(self, name, lvl, hp, atk, def_, spatk, spdef, speed, types, move_names):
         self.name = name
         self.lvl = lvl
         self.hp = hp
@@ -41,8 +40,32 @@ class Pokemon:
         self.speed = speed
         self.types = types
         self.moves = [Move(name) for name in move_names]
-        self.known = known
-        self.affected = affected
+
+    def attrs(self):
+        return ('name', 'lvl', 'hp', 'totalhp', 'atk', 'def_', 
+                'spatk', 'spdef', 'speed', 'types', 'moves')
+
+    def __hash__(self):
+        return hash(self.attrs())
+
+    def __values(self):
+        return (getattr(self, attr) for attr in self.attrs())
+
+    def __cmp__(self, other):
+        for s, o in zip(self.__values(), other.__values()):
+            c = cmp(s, o)
+            if c:
+                return c
+        return 0
+
+    def __eq__(self, other):
+        return cmp(self, other) == 0
+
+    def __lt__(self, other):
+        return cmp(self, other) < 0
+
+    def __gt__(self, other):
+        return cmp(self, other) > 0
 
     def __repr__(self):
         return "<%s>" % self.__str__()
@@ -59,13 +82,34 @@ class Move:
         self.pp = move['pp'] if not pp else pp
         self.type_ = move['type']['name'] if not type_ else type_
 
+    def attrs(self):
+        return ('name', 'base_power', 'pp', 'type_')
+
+    def __hash__(self):
+        return hash(self.attrs())
+
+    def __values(self):
+        return (getattr(self, attr) for attr in self.attrs())
+
+    def __cmp__(self, other):
+        for s, o in zip(self.__values(), other.__values()):
+            c = cmp(s, o)
+            if c:
+                return c
+        return 0
+
+    def __eq__(self, other):
+        return cmp(self, other) == 0
+
+    def __repr__(self):
+        return "<move: %s>" % self.__str__()
+
+    def __str__(self):
+        return self.name
+
 def gen_team():
     team = []
-    # for i in range(6):
-    #     team.append(Pokemon('charizard%s' % i, 100, 297, 204, 192, 254, 206, 236, ['flying', 'fire'], ['acrobatics', 'dragon-pulse', 'flamethrower', 'focus-blast']))
-    # for i in range(6):
-    #     team.append(Pokemon('dragonite%s' % i, 85, 276, 259, 192, 201, 201, 167, ['flying', 'dragon'], ['dragon-claw', 'dragon-pulse', 'superpower', 'aqua-tail']))
-    #arceus = Pokemon('arceus', 100, 381, 276, 276, 276, 276, 276, ['normal'], ['judgment', 'acrobatics'])
+
     team.append(Pokemon('rayquaza', 100, 351, 200, 216, 336, 216, 226, ['dragon', 'flying'], ['draco-meteor', 'earthquake', 'dragon-ascent', 'extreme-speed']))
     team.append(Pokemon('lucario', 100, 281, 200, 176, 266, 176, 216, ['fighting', 'steel'], ['shadow-ball', 'close-combat', 'bullet-punch', 'crunch']))
     team.append(Pokemon('giratina', 100, 441, 259, 276, 212, 276, 216, ['dragon', 'ghost'], ['draco-meteor', 'earthquake', 'dragon-ascent', 'extreme-speed']))
@@ -73,27 +117,13 @@ def gen_team():
     team.append(Pokemon('heracross', 100, 301, 286, 186, 116, 226, 206, ['fighting', 'bug'], ['brick-break', 'tackle', 'body-slam', 'megahorn']))
     team.append(Pokemon('cubone', 100, 241, 136, 226, 116, 136, 106, ['ground'], ['earthquake', 'fire-blast', 'fire-punch', 'body-slam']))
 
-    team.append(Pokemon('mewtwo', 100, 200, 200, 216, 336, 216, 226, ['dragon', 'flying'], ['tackle', 'earthquake', 'dragon-ascent', 'extreme-speed']))
-    team.append(Pokemon('cat', 100, 200, 200, 176, 266, 176, 216, ['fighting', 'steel'], ['shadow-ball', 'close-combat', 'bullet-punch', 'crunch']))
-    team.append(Pokemon('dog', 100, 200, 259, 276, 212, 276, 216, ['dragon', 'ghost'], ['draco-meteor', 'earthquake', 'dragon-ascent', 'extreme-speed']))
-    team.append(Pokemon('log', 85, 200, 259, 192, 201, 201, 167, ['flying', 'dragon'], ['dragon-claw', 'dragon-pulse', 'superpower', 'aqua-tail']))
-    team.append(Pokemon('rock', 100, 200, 286, 186, 116, 226, 206, ['fighting', 'bug'], ['brick-break', 'tackle', 'body-slam', 'megahorn']))
-    team.append(Pokemon('paper', 100, 200, 136, 226, 116, 136, 106, ['ground'], ['earthquake', 'fire-blast', 'fire-punch', 'body-slam']))
+    for i in range(6):
+        team.append(avg_pokemon())
+
     return team
 
-def rand_team():
-    team = []
-    team.append(Pokemon('rayquaza', 100, 200, 200, 216, 336, 216, 226, ['dragon', 'flying'], ['tackle', 'earthquake', 'dragon-ascent', 'extreme-speed']))
-    team.append(Pokemon('lucario', 100, 200, 200, 176, 266, 176, 216, ['fighting', 'steel'], ['shadow-ball', 'close-combat', 'bullet-punch', 'crunch']))
-    team.append(Pokemon('giratina', 100, 200, 259, 276, 212, 276, 216, ['dragon', 'ghost'], ['draco-meteor', 'earthquake', 'dragon-ascent', 'extreme-speed']))
-    team.append(Pokemon('dragonite', 85, 200, 259, 192, 201, 201, 167, ['flying', 'dragon'], ['dragon-claw', 'dragon-pulse', 'superpower', 'aqua-tail']))
-    team.append(Pokemon('pikachu', 100, 200, 286, 186, 116, 226, 206, ['fighting', 'bug'], ['brick-break', 'tackle', 'body-slam', 'megahorn']))
-    team.append(Pokemon('squirtle', 100, 200, 136, 226, 116, 136, 106, ['ground'], ['earthquake', 'fire-blast', 'fire-punch', 'body-slam']))
-
-    team.append(Pokemon('mewtwo', 100, 200, 200, 216, 336, 216, 226, ['dragon', 'flying'], ['tackle', 'earthquake', 'dragon-ascent', 'extreme-speed']))
-    
-    return team
-
+def avg_pokemon():
+    return Pokemon('heracross', 100, 200, 286, 186, 116, 226, 206, ['fighting', 'bug'], ['brick-break', 'tackle', 'body-slam', 'megahorn'])
 
 
 
