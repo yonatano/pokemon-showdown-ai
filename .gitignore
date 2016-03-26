@@ -3,4 +3,5 @@
 research
 data/*.json
 *.data
-application/ghostdriver.log
+browser/ghostdriver.log
+browser/chromedriver
