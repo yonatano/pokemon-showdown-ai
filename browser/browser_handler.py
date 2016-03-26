@@ -13,7 +13,6 @@ print "name: %s" % __name__
 from ..simulator import simulate
 
 
-
 class WaitOnTextChanged(object):
     """
     Yield new values of locator until text hasn't changed for x seconds.
@@ -184,6 +183,7 @@ class ShowdownBattle(DynamicWebPage):
             stats    = [re.findall(r'^[0-9]+',s)[0] for s in stats]
             moves    = [m.strip() for m in tooltip_moves.split('\n')]
             moves    = [re.findall(r'[A-Za-z]+$', m)[0] for m in moves]
+            moves    = [m.lower().replace(' ', '-') for m in moves]
 
             pokemon = simulate.Pokemon(name, lvl, thp, stats[0], stats[1], 
                                        stats[2], stats[3], stats[4], types, moves)
