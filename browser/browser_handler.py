@@ -159,7 +159,6 @@ class ShowdownBattle(DynamicWebPage):
             team = []
             team_btns = self.get_all_when_present(self.LOCATORS['battle_swap_btns'])
             for pk in team_btns:
-                print "NEXT_PMKN:"
                 actions = ActionChains(self.driver)
                 actions.move_to_element(pk)
                 actions.perform()
@@ -171,31 +170,18 @@ class ShowdownBattle(DynamicWebPage):
                 tooltip_stats   = tooltip.find_element_by_xpath('(.//p)[3]').text
                 tooltip_moves   = tooltip.find_element_by_xpath('(.//p)[4]').text
                 #tooltip_ab_itm  = tooltip.find_element_by_xpath('.//(p)[2]').text
-                print "RAW:"
-                print tooltip_lvl
-                print tooltip_hp
-                print tooltip_stats
-                print tooltip_moves
-                print "VALUES:"
+
                 name     = pk.text
-                print name
                 types    = [t.get_attribute('alt') for t in tooltip_types]
                 types    = [t.lower() for t in types if t not in ['F', 'M']]
-                print types
                 lvl      = re.findall(r'[0-9]+$', tooltip_lvl)[0]
-                print lvl
                 _hp      = re.findall(r'\(([0-9]+)/([0-9]+)\)', tooltip_hp)[0]
                 hp, thp  = _hp[0], _hp[1]
-                print _hp
                 stats    = [s.strip() for s in tooltip_stats.split('/')]
                 stats    = [re.findall(r'^[0-9]+',s)[0] for s in stats]
-                print stats
                 moves    = [m.strip() for m in tooltip_moves.split('\n')]
                 moves    = [re.findall(r'[A-Za-z]+$', m)[0] for m in moves]
                 moves    = [m.lower().replace(' ', '-') for m in moves]
-                print moves
-                print ""
-
         except:
             print "error"
 
