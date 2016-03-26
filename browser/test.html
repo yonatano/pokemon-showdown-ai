@@ -1,0 +1,20 @@
+<html>
+<div id="changing-div">0</div>
+<div><button name="login">login</button></div>
+<script>
+var counter = 0;
+setInterval(function(){
+    //test onchange
+    counter++;
+    var value = document.getElementById("changing-div").innerHTML;
+    var new_value = Math.random() * 1000;
+    document.getElementById("changing-div").innerHTML = new_value;
+
+    if (counter > 3) {
+        //test elementNotFound
+        document.getElementById("changing-div").innerHTML = "derp";
+        //document.getElementById("changing-div").id = "";
+    }
+}, 1000);
+</script>
+</html>

@@ -35,7 +35,7 @@ def test_next_move(max_depth=5):
 
 if __name__ == "__main__":
     print "TIMING MINIMAX:"
-    time_minimax(num_iters=1)
+    time_minimax(max_depth=6, num_iters=1)
 
     print "TESTING BACKPROP:"
     test_backprop()
