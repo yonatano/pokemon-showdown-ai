@@ -8,10 +8,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
 from selenium.webdriver.common.action_chains import ActionChains
 
-print "name: %s" % __name__
-
 from ..simulator import simulate
-
 
 class WaitOnTextChanged(object):
     """
@@ -158,36 +155,54 @@ class ShowdownBattle(DynamicWebPage):
         self.wait_until_equals(self.LOCATORS['turn_count'], "Turn 1")
 
     def get_player_team(self):
-        team = []
-        team_btns = self.get_all_when_present(self.LOCATORS['battle_swap_btns'])
-        for pk in team_btns:
-            actions = ActionChains(self.driver)
-            actions.move_to_element(pk)
-            actions.perform()
-            tooltip = self.get_when_present(self.LOCATORS['tooltip'])
+        try:
+            team = []
+            team_btns = self.get_all_when_present(self.LOCATORS['battle_swap_btns'])
+            for pk in team_btns:
+                print "NEXT_PMKN:"
+                actions = ActionChains(self.driver)
+                actions.move_to_element(pk)
+                actions.perform()
+                tooltip = self.get_when_present(self.LOCATORS['tooltip'])
 
-            tooltip_types   = tooltip.find_elements_by_xpath('.//h2/img')
-            tooltip_lvl     = tooltip.find_element_by_xpath('.//h2/small').text
-            tooltip_hp      = tooltip.find_element_by_xpath('(.//p)[1]').text
-            tooltip_stats   = tooltip.find_element_by_xpath('(.//p)[3]').text
-            tooltip_moves   = tooltip.find_element_by_xpath('(.//p)[4]').text
-            #tooltip_ab_itm  = tooltip.find_element_by_xpath('.//(p)[2]').text
+                tooltip_types   = tooltip.find_elements_by_xpath('.//h2/img')
+                tooltip_lvl     = tooltip.find_element_by_xpath('(.//h2/small)[last()]').text
+                tooltip_hp      = tooltip.find_element_by_xpath('(.//p)[1]').text
+                tooltip_stats   = tooltip.find_element_by_xpath('(.//p)[3]').text
+                tooltip_moves   = tooltip.find_element_by_xpath('(.//p)[4]').text
+                #tooltip_ab_itm  = tooltip.find_element_by_xpath('.//(p)[2]').text
+                print "RAW:"
+                print tooltip_lvl
+                print tooltip_hp
+                print tooltip_stats
+                print tooltip_moves
+                print "VALUES:"
+                name     = pk.text
+                print name
+                types    = [t.get_attribute('alt') for t in tooltip_types]
+                types    = [t.lower() for t in types if t not in ['F', 'M']]
+                print types
+                lvl      = re.findall(r'[0-9]+$', tooltip_lvl)[0]
+                print lvl
+                _hp      = re.findall(r'\(([0-9]+)/([0-9]+)\)', tooltip_hp)[0]
+                hp, thp  = _hp[0], _hp[1]
+                print _hp
+                stats    = [s.strip() for s in tooltip_stats.split('/')]
+                stats    = [re.findall(r'^[0-9]+',s)[0] for s in stats]
+                print stats
+                moves    = [m.strip() for m in tooltip_moves.split('\n')]
+                moves    = [re.findall(r'[A-Za-z]+$', m)[0] for m in moves]
+                moves    = [m.lower().replace(' ', '-') for m in moves]
+                print moves
+                print ""
 
-            name     = pk.text
-            types    = [t.get_attribute('alt') for t in tooltip_types]
-            types    = [t.lower() for t in types if t not in ['F', 'M']]
-            lvl      = re.findall(r'[0-9]+$', tooltip_lvl)[0]
-            _hp      = re.findall(r'\(([0-9]+)/([0-9]+)\)', tooltip_hp)[0]
-            hp, thp  = _hp[0], _hp[1]
-            stats    = [s.strip() for s in tooltip_stats.split('/')]
-            stats    = [re.findall(r'^[0-9]+',s)[0] for s in stats]
-            moves    = [m.strip() for m in tooltip_moves.split('\n')]
-            moves    = [re.findall(r'[A-Za-z]+$', m)[0] for m in moves]
-            moves    = [m.lower().replace(' ', '-') for m in moves]
+        except:
+            print "error"
 
-            pokemon = simulate.Pokemon(name, lvl, thp, stats[0], stats[1], 
-                                       stats[2], stats[3], stats[4], types, moves)
-            team.append(pokemon)
+            #pokemon = simulate.Pokemon(name, lvl, thp, stats[0], stats[1], 
+            #                           stats[2], stats[3], stats[4], types, moves)
+        
+            #team.append(pokemon)
         
         return team
 
