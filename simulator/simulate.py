@@ -75,6 +75,13 @@ class Pokemon:
 
 class Move:
     def __init__(self, name, base_power=None, accuracy=None, pp=None, type_=None):
+        self.set_attrs(name, base_power, accuracy, pp, type_)
+
+    def set_attrs(self, name, base_power, accuracy, pp, type_):
+        #edge-case
+        if "hidden-power" in name:
+            name, type_ = "hidden-power", name.split("hidden-power-")[1]
+
         move = moves[name]
         self.name = name
         self.base_power = move['power'] if not base_power else base_power
