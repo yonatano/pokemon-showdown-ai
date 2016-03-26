@@ -3,10 +3,16 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
+from selenium.webdriver.common.action_chains import ActionChains
 
+import re
 import time
 import random
 import string
+
+from . import simulate
+from . import minimax
+
 
 class WaitOnTextChanged(object):
     """
@@ -107,6 +113,7 @@ class ShowdownBattle(DynamicWebPage):
             'turn_count'            :(By.XPATH, '(//h2[starts-with(text(), "Turn")])[last()]'),
             'player_active'         :(By.XPATH, '//div[@class="statbar rstatbar"]/strong'),
             'opponent_active'       :(By.XPATH, '//div[@class="statbar lstatbar"]/strong'),
+            'tooltip'               :(By.XPATH, '//div[@class="tooltip"]'),
         }
 
     def __enter__(self):
@@ -152,8 +159,36 @@ class ShowdownBattle(DynamicWebPage):
         self.wait_until_equals(self.LOCATORS['turn_count'], "Turn 1")
 
     def get_player_team(self):
-        team = self.get_all_when_present(self.LOCATORS['battle_swap_btns'])
-        team = [t.text for t in team]
+        team = []
+        team_btns = self.get_all_when_present(self.LOCATORS['battle_swap_btns'])
+        for pk in team_btns:
+            actions = ActionChains(driver)
+            actions.move_to_element(pk)
+            actions.perform()
+            tooltip = self.get_when_present(self.LOCATORS['tooltip'])
+
+            tooltip_types   = tooltip.find_elements_by_xpath('.//h2/img')
+            tooltip_lvl     = tooltip.find_element_by_xpath('.//h2/small').text
+            tooltip_hp      = tooltip.find_element_by_xpath('(.//p)[1]').text
+            tooltip_stats   = tooltip.find_element_by_xpath('(.//p)[3]').text
+            tooltip_moves   = tooltip.find_element_by_xpath('(.//p)[4]').text
+            #tooltip_ab_itm  = tooltip.find_element_by_xpath('.//(p)[2]').text
+
+            name     = pk.text
+            types    = [t.get_attribute('alt') for t in tooltip_types]
+            types    = [t.lower() for t in types if t not in ['F', 'M']]
+            lvl      = re.findall(r'[0-9]+$', tooltip_lvl)[0]
+            _hp      = re.findall(r'\(([0-9]+)/([0-9]+)\)', tooltip_hp)[0]
+            hp, thp  = _hp[0], _hp[1]
+            stats    = [s.strip() for s in tooltip_stats.split('/')]
+            stats    = [re.findall(r'^[0-9]+',s)[0] for s in stats]
+            moves    = [m.strip() for m in tooltip_moves.split('\n')]
+            moves    = [re.findall(r'[A-Za-z]+$', m)[0] for m in moves]
+
+            pokemon = simulate.Pokemon(name, lvl, thp, stats[0], stats[1], 
+                                       stats[2], stats[3], stats[4], types, moves)
+            team.append(pokemon)
+        
         return team
 
     def get_active_pokemon(self):
@@ -187,5 +222,5 @@ if __name__ == "__main__":
         for turn in showdown.on_change(showdown.LOCATORS['turn_count'],
                                        timeout=-1):
             p_active, o_active = showdown.get_active_pokemon()
-            print "Turn 1: %s VS %s" % (p_active, o_active)
+            print "Turn %s: %s VS %s" % (turn, p_active, o_active)
 
