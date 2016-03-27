@@ -61,6 +61,9 @@ class Pokemon:
             value = formula_stat(base, self.lvl, 31, 85) #IV:31 / EV:85 (averages)
             setattr(self, name, value)
 
+        if self.name == 'shedinja': #lol Pokemon is ridiculous
+            self.hp = 1
+
     def attrs(self):
         return ('name', 'lvl', 'hp', 'totalhp', 'atk', 'def_', 
                 'spatk', 'spdef', 'speed', 'types', 'moves')
