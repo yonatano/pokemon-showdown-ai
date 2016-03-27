@@ -29,7 +29,7 @@ def calc_damage(attacker, defender, move, crit=False):
     return int(damage)
 
 class Pokemon:
-    def __init__(self, name, lvl=100, hp=0, atk=0, def_=0, spatk=0, spdef=0, speed=0, types=[], move_names=[]):
+    def __init__(self, name, lvl=85, hp=0, atk=0, def_=0, spatk=0, spdef=0, speed=0, types=[], move_names=[]):
         self.name = name
         self.lvl = lvl
         self.hp = hp
@@ -63,6 +63,13 @@ class Pokemon:
 
         if self.name == 'shedinja': #lol Pokemon is ridiculous
             self.hp = 1
+
+        self.types = [t['type']['name'] for t in pokemon['types']]
+
+        "pick four random moves"
+        movelist = pokemon['moves'][:]
+        random.shuffle(movelist)
+        self.moves = [Move(m['move']['name']) for m in movelist]
 
     def attrs(self):
         return ('name', 'lvl', 'hp', 'totalhp', 'atk', 'def_', 
@@ -121,6 +128,7 @@ class Move:
         return hash(self.attrs())
 
     def __values(self):
+        cmp_attrs = ['name', 'base_power', 'type_']
         return (getattr(self, attr) for attr in self.attrs())
 
     def __cmp__(self, other):
