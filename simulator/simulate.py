@@ -7,9 +7,10 @@ import operator
 import simplejson as json
 
 data = os.path.join(os.path.dirname(__file__), '../data')
-types = json.loads(open('%s/type.json' % data, 'r').read())
-moves = json.loads(open('%s/moves.json' % data, 'r').read())
-type_names = sorted(types.keys())
+data_types = json.loads(open('%s/type.json' % data, 'r').read())
+data_moves = json.loads(open('%s/moves.json' % data, 'r').read())
+data_pokemon = json.loads(open('%s/pokemon.json' % data, 'r').read())
+type_names = sorted(data_types.keys())
 
 def calc_damage(attacker, defender, move, crit=False):
     "calculate modifier and damage"
@@ -41,6 +42,25 @@ class Pokemon:
         self.types = types
         self.moves = [Move(name) for name in move_names]
 
+    def fill_avgs(self):
+        pokemon = data_pokemon[self.name]
+        formula_stat = lambda (base, lvl, iv, ev): (((base + iv) * 2 + (ev ** 0.5) / 4.0) * lvl / 100.0) + 5
+        formula_hp   = lambda (base, lvl, iv, ev): formula_stat(base, lvl, iv, ev) + lvl + 5
+
+        stats_ = {
+                'hp': 'hp',
+                'attack': 'atk',
+                'defense': 'def_',
+                'special-attack': 'spatk',
+                'special-defense': 'spdef',
+                'speed': 'speed',
+        }
+        for stat in pokemon['stats']:
+            name = stats_[stat['stat']['name']]
+            base = stat['base_stat']
+            value = formula_stat(base, self.lvl, 31, 510) #IV:31 / EV:510
+            setattr(self, name, value)
+
     def attrs(self):
         return ('name', 'lvl', 'hp', 'totalhp', 'atk', 'def_', 
                 'spatk', 'spdef', 'speed', 'types', 'moves')
@@ -49,7 +69,8 @@ class Pokemon:
         return hash(self.attrs())
 
     def __values(self):
-        return (getattr(self, attr) for attr in self.attrs())
+        cmp_attrs = [a for a in self.attrs() if a not in ['hp', 'atk', 'def_', 'spatk', 'spdef', 'speed']]
+        return (getattr(self, attr) for attr in cmp_attrs)
 
     def __cmp__(self, other):
         for s, o in zip(self.__values(), other.__values()):
@@ -82,7 +103,7 @@ class Move:
         if "hidden-power" in name:
             name, type_ = "hidden-power", name.split("hidden-power-")[1]
 
-        move = moves[name]
+        move = data_moves[name]
         self.name = name
         self.base_power = move['power'] if not base_power else base_power
         self.accuracy = move['accuracy'] if not accuracy else accuracy 
@@ -130,7 +151,7 @@ def gen_team():
     return team
 
 def avg_pokemon():
-    return Pokemon('heracross', 100, 200, 286, 186, 116, 226, 206, ['fighting', 'bug'], ['brick-break', 'tackle', 'body-slam', 'megahorn'])
+    return Pokemon('?', 100, 200, 286, 186, 116, 226, 206, ['normal'], ['brick-break', 'tackle', 'body-slam', 'megahorn'])
 
 
 
