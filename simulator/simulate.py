@@ -58,7 +58,7 @@ class Pokemon:
         for stat in pokemon['stats']:
             name = stats_[stat['stat']['name']]
             base = stat['base_stat']
-            value = formula_stat(base, self.lvl, 31, 510) #IV:31 / EV:510
+            value = formula_stat(base, self.lvl, 31, 85) #IV:31 / EV:85 (averages)
             setattr(self, name, value)
 
     def attrs(self):
