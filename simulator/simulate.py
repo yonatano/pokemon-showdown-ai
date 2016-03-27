@@ -29,7 +29,7 @@ def calc_damage(attacker, defender, move, crit=False):
     return int(damage)
 
 class Pokemon:
-    def __init__(self, name, lvl, hp, atk, def_, spatk, spdef, speed, types, move_names):
+    def __init__(self, name, lvl=100, hp=0, atk=0, def_=0, spatk=0, spdef=0, speed=0, types=[], move_names=[]):
         self.name = name
         self.lvl = lvl
         self.hp = hp
@@ -72,7 +72,8 @@ class Pokemon:
         return hash(self.attrs())
 
     def __values(self):
-        cmp_attrs = [a for a in self.attrs() if a not in ['hp', 'atk', 'def_', 'spatk', 'spdef', 'speed']]
+        #cmp_attrs = [a for a in self.attrs() if a not in ['hp', 'atk', 'def_', 'spatk', 'spdef', 'speed']]
+        cmp_attrs = ['name']
         return (getattr(self, attr) for attr in cmp_attrs)
 
     def __cmp__(self, other):

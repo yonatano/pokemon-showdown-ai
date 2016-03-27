@@ -1,1 +1,1 @@
-__all__ = ["simuate", "minimax"]
+__all__ = ["simulate", "minimax"]
