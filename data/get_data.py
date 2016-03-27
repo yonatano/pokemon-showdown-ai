@@ -8,7 +8,7 @@ from lxml import html
 LADDERS = ['uu', 'ubers', 'ou', 'ru', 'nu', 'pu']
 
 def download_pokemon():
-    num_pokemon = 811
+    num_pokemon = 721
     f = open('pokemon.json', 'r+')
     pokemon = {} if len(f.read()) == 0 else json.loads(f.read())
     start = max(1, len( pokemon.keys() ))
