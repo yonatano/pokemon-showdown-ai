@@ -9,7 +9,7 @@ import simplejson as json
 data = os.path.join(os.path.dirname(__file__), '../data')
 data_types = json.loads(open('%s/type.json' % data, 'r').read())
 data_moves = json.loads(open('%s/moves.json' % data, 'r').read())
-data_pokemon = json.loads(open('%s/pokemon.json' % data, 'r').read())
+data_pokemon = json.loads(open('%s/pokemon_.json' % data, 'r').read())
 type_names = sorted(data_types.keys())
 
 def calc_damage(attacker, defender, move, crit=False):
@@ -115,7 +115,9 @@ class Move:
 
         #edge-case
         if "hidden-power" in name:
-            name, type_ = "hidden-power", name.split("hidden-power-")[1]
+            hidden_pwr = name.split("hidden-power-")
+            type_ = hidden_pwr[1] if len(hidden_pwr) > 1 else "normal"
+            name = "hidden-power"
 
         move = data_moves[name]
         self.name = name
