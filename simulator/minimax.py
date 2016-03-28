@@ -42,7 +42,9 @@ def next_states(gamestate, ai_turn=True):
             states_swap = transform_state_swap(state, ai_turn)
             states_total = states_attack + states_swap
             for state_ in states_total:
-                state_[1] = "%s %s" % (desc, state_[1])
+                new_desc = desc[:]
+                new_desc.extend(state_[1])
+                state_[1] = new_desc
             next_states.extend(states_total)
     else: #possible moves are attack with active or swap it out
         states_attack = transform_state_attack(gamestate, ai_turn)
@@ -65,7 +67,7 @@ def transform_state_attack(gamestate, ai_turn=True):
             dmg = simulate.calc_damage(active_pokemon, next_[opp], move)
             next_[curr].moves[i].pp -= 1
             next_[opp].hp -= dmg
-            desc = "%s used %s on %s" % (active_pokemon.name, move.name, next_[opp].name)
+            desc = [('move', move.name)]
             if next_[opp].hp <= 0:
                 next_[opp] = None
             next_states.append([next_, desc])
@@ -84,9 +86,9 @@ def transform_state_swap(gamestate, ai_turn=True):
         if pokemon is not None:
             next_ = copy.deepcopy(gamestate)
             if next_[curr] is not None:
-                desc = "%s was swapped with %s" % (next_[curr].name, next_[curr+i+1].name)
+                desc = [('swap', next_[curr+i+1].name)]
             else:
-                desc = "%s was swapped in." % (next_[curr+i+1].name)
+                desc = [('swap', next_[curr+i+1].name)]
 
             next_[curr+i+1],next_[curr] = next_[curr],next_[curr+i+1]
             next_states.append([next_, desc])
