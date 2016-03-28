@@ -18,6 +18,10 @@ def download_pokemon():
             print "getting pokemon %s %s/%s" % (r['name'], i, num_pokemon)
             pokemon[r['name']] = r
 
+            if '-' in r['name']:
+                shorter_name = re.findall(r'(.+?)\-')[0]
+                pokemon[shorter_name] = r
+
             sleep(100 / 1000.0)
         except: #probably got rate-limited
             f.write(json.dumps(pokemon, indent=4))
