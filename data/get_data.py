@@ -7,6 +7,30 @@ from lxml import html
 
 LADDERS = ['uu', 'ubers', 'ou', 'ru', 'nu', 'pu']
 
+def download_pokemon():
+    num_pokemon = 721
+    f = open('pokemon.json', 'r+')
+    pokemon = {} if len(f.read()) == 0 else json.loads(f.read())
+    start = max(1, len( pokemon.keys() ))
+    for i in xrange(start, num_pokemon + 1):
+        try:
+            r = requests.get("http://pokeapi.co/api/v2/pokemon/%s" % i).json()
+            print "getting pokemon %s %s/%s" % (r['name'], i, num_pokemon)
+            pokemon[r['name']] = r
+
+            if '-' in r['name']:
+                shorter_name = re.findall(r'(.+?)\-')[0]
+                pokemon[shorter_name] = r
+
+            sleep(100 / 1000.0)
+        except: #probably got rate-limited
+            f.write(json.dumps(pokemon, indent=4))
+            f.close()
+            print "saving and quitting... failed on %s" % i
+
+    f.write(json.dumps(pokemon, indent=4))
+    f.close()
+
 def download_moves():
     num_moves = 639
     movelist = requests.get("http://pokeapi.co/api/v2/move/?limit=%s" % num_moves)
@@ -19,7 +43,7 @@ def download_moves():
         r['power'] = 0 if not r['power'] else r['power']
         moves[r['name']] = r
 
-        sleep(200 / 1000.0)
+        sleep(100 / 1000.0)
 
     f = open('moves.json', 'w')
     f.write(json.dumps(moves, indent=4))
@@ -157,8 +181,4 @@ def get_and_format_replay(replay_url):
     
 
 if __name__ == "__main__":
-    """f = open('ladders.json', 'w')
-    ladders = {l:download_ladder(l) for l in LADDERS[:1]}
-    f.write(json.dumps(ladders, indent=4, sort_keys=True))
-    """
-    download_moves()
+    download_pokemon()
