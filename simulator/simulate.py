@@ -2,6 +2,7 @@
 Used to simulate a random pokemon battle as per the rules of PokemonShowdown.
 """
 import os
+import re
 import random
 import operator
 import simplejson as json
@@ -14,7 +15,6 @@ type_names = sorted(data_types.keys())
 
 def calc_damage(attacker, defender, move, crit=False):
     "calculate modifier and damage"
-    defender.affected = True
     stab = 1.5 if (move.type_ in attacker.types) else 1
     atk = attacker.spatk if (move.type_ in attacker.types) else attacker.atk
     def_ = attacker.spdef if (move.type_ in attacker.types) else attacker.def_
@@ -30,7 +30,7 @@ def calc_damage(attacker, defender, move, crit=False):
 
 class Pokemon:
     def __init__(self, name, lvl=85, hp=0, thp=0, atk=0, def_=0, spatk=0, spdef=0, speed=0, types=[], move_names=[]):
-        self.name = name
+        self.name = self.clean_name(name)
         self.lvl = int(lvl)
         self.hp = int(hp)
         self.totalhp = self.hp if int(thp) == 0 else int(thp)
@@ -41,6 +41,13 @@ class Pokemon:
         self.speed = int(speed)
         self.types = types
         self.moves = [Move(name) for name in move_names]
+
+    @staticmethod
+    def clean_name(name):
+        re_clean_name = re.compile(r"(.+?)\s")
+        if re_clean_name.match(name):
+            name = re_clean_name.match(name).groups()[0]
+        return name
 
     def fill_avgs(self):
         pokemon = data_pokemon[self.name.lower()]
@@ -61,7 +68,7 @@ class Pokemon:
             value = formula_stat(base, self.lvl, 31, 85) #IV:31 / EV:85 (averages)
             setattr(self, name, value)
         self.totalhp = self.hp
-        
+
         if self.name == 'shedinja': #lol Pokemon is ridiculous
             self.hp = 1
 
@@ -93,13 +100,11 @@ class Pokemon:
         return 0
 
     def __eq__(self, other):
-        return cmp(self, other) == 0
+        other_vals = other.__values() if other is not None else ()
+        return [v for v in self.__values()] == [v for v in other_vals]
 
-    def __lt__(self, other):
-        return cmp(self, other) < 0
-
-    def __gt__(self, other):
-        return cmp(self, other) > 0
+    def __ne__(self, other):
+        return not self == other
 
     def __repr__(self):
         return "<%s>" % self.__str__()
@@ -108,8 +113,9 @@ class Pokemon:
         return "%s hp:%s" % (self.name, self.hp)
 
 class Move:
-    def __init__(self, name, base_power=None, accuracy=None, pp=None, type_=None):
+    def __init__(self, name, base_power=None, accuracy=None, pp=None, type_=None, placeholder=False):
         self.set_attrs(name, base_power, accuracy, pp, type_)
+        self.placeholder = placeholder
 
     def set_attrs(self, name, base_power, accuracy, pp, type_):
         name = name.lower().replace(' ', '-')
@@ -138,7 +144,7 @@ class Move:
         return hash(self.attrs())
 
     def __values(self):
-        cmp_attrs = ['name', 'base_power', 'type_']
+        cmp_attrs = ['name']
         return (getattr(self, attr) for attr in self.attrs())
 
     def __cmp__(self, other):
@@ -149,7 +155,11 @@ class Move:
         return 0
 
     def __eq__(self, other):
-        return cmp(self, other) == 0
+        other_vals = other.__values() if other is not None else ()
+        return [v for v in self.__values()] == [v for v in other_vals]
+
+    def __ne__(self, other):
+        return not self == other
 
     def __repr__(self):
         return "<move: %s>" % self.__str__()
@@ -174,7 +184,5 @@ def gen_team():
 
 def avg_pokemon():
     return Pokemon('?', 100, 200, 200, 286, 186, 116, 226, 206, ['normal'], ['brick-break', 'tackle', 'body-slam', 'megahorn'])
-
-
 
 
