@@ -110,6 +110,7 @@ class ShowdownBattle(DynamicWebPage):
             'player_active'         :(By.XPATH, '//div[@class="statbar rstatbar"]/strong'),
             'opponent_active'       :(By.XPATH, '//div[@class="statbar lstatbar"]/strong'),
             'tooltip'               :(By.XPATH, '//div[@class="tooltip"]'),
+            'battle-log'            :(By.XPATH, '//div[@class="battle-log"]/div[@class="inner"]'),
         }
 
     def __enter__(self):
@@ -154,6 +155,10 @@ class ShowdownBattle(DynamicWebPage):
         startbattle_btn.click()
         self.wait_until_equals(self.LOCATORS['turn_count'], "Turn 1")
 
+    def get_battle_log(self):
+        log = self.get_when_present(self.LOCATORS['battle-log']).text.split('\n')
+        return log
+
     def get_player_team(self):
         team = []
         team_btns = self.get_all_when_present(self.LOCATORS['battle_swap_btns'])
@@ -179,8 +184,8 @@ class ShowdownBattle(DynamicWebPage):
             stats    = [s.strip() for s in tooltip_stats.split('/')]
             stats    = [re.findall(r'^[0-9]+',s)[0] for s in stats]
             moves    = [m.strip() for m in tooltip_moves.split('\n')]
-            moves    = [re.findall(r'\s.+$', m)[0].strip() for m in moves]
-            moves    = [m.lower().replace(' ', '-') for m in moves]
+            
+            moves    = [re.findall(r'\s(.+?)($|\s)', m)[0].strip() for m in moves] #fix move regex to ignore pp (1/10)
 
             print (name, lvl, thp, stats[0], stats[1], stats[2], stats[3], stats[4], types, moves)
             try:
