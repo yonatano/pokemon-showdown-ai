@@ -29,7 +29,7 @@ def calc_damage(attacker, defender, move, crit=False):
     return int(damage)
 
 class Pokemon:
-    def __init__(self, name, lvl=85, hp=0, thp=0 atk=0, def_=0, spatk=0, spdef=0, speed=0, types=[], move_names=[]):
+    def __init__(self, name, lvl=85, hp=0, thp=0, atk=0, def_=0, spatk=0, spdef=0, speed=0, types=[], move_names=[]):
         self.name = name
         self.lvl = lvl
         self.hp = hp
