@@ -95,7 +95,11 @@ class DynamicWebPage(object):
 
 class ShowdownBattle(DynamicWebPage):
     def __init__(self):
-        self.driver = webdriver.Chrome(executable_path="chromedriver")
+        chrome_options = webdriver.ChromeOptions()
+        prefs = {"profile.default_content_setting_values.notifications" : 2}
+        chrome_options.add_experimental_option("prefs",prefs)
+        self.driver = webdriver.Chrome(executable_path="chromedriver", 
+                                       chrome_options=chrome_options)
         super(ShowdownBattle, self).__init__(self.driver)
         self.BASE = "http://play.pokemonshowdown.com"
         self.LOCATORS = {
@@ -111,6 +115,7 @@ class ShowdownBattle(DynamicWebPage):
             'opponent_active'       :(By.XPATH, '//div[@class="statbar lstatbar"]/strong'),
             'tooltip'               :(By.XPATH, '//div[@class="tooltip"]'),
             'battle-log'            :(By.XPATH, '//div[@class="battle-log"]/div[@class="inner"]'),
+            'battle-log-last-line'  :(By.XPATH, '(//div[@class="battle-log"]/div[@class="inner"]/*)[last()]')
         }
 
     def __enter__(self):
