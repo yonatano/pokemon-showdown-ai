@@ -168,32 +168,33 @@ class ShowdownBattle(DynamicWebPage):
             actions.perform()
             tooltip = self.get_when_present(self.LOCATORS['tooltip'])
 
-            tooltip_types   = tooltip.find_elements_by_xpath('.//h2/img')
             tooltip_lvl     = tooltip.find_element_by_xpath('(.//h2/small)[last()]').text
             tooltip_hp      = tooltip.find_element_by_xpath('(.//p)[1]').text
+            tooltip_types   = tooltip.find_elements_by_xpath('.//h2/img')
             tooltip_stats   = tooltip.find_element_by_xpath('(.//p)[3]').text
             tooltip_moves   = tooltip.find_element_by_xpath('(.//p)[4]').text
             #tooltip_ab_itm  = tooltip.find_element_by_xpath('.//(p)[2]').text
 
             name     = pk.text
+            _hp      = re.findall(r'\(([0-9]+)/([0-9]+)\)', tooltip_hp)
+            if len(_hp) == 0:
+                team.append(None)
+                continue
+            else:
+                _hp = _hp[0]
+            lvl      = re.findall(r'[0-9]+$', tooltip_lvl)[0]
+            hp, thp  = _hp[0], _hp[1]
             types    = [t.get_attribute('alt') for t in tooltip_types]
             types    = [t.lower() for t in types if t not in ['F', 'M']]
-            lvl      = re.findall(r'[0-9]+$', tooltip_lvl)[0]
-            _hp      = re.findall(r'\(([0-9]+)/([0-9]+)\)', tooltip_hp)[0]
-            hp, thp  = _hp[0], _hp[1]
             stats    = [s.strip() for s in tooltip_stats.split('/')]
             stats    = [re.findall(r'^[0-9]+',s)[0] for s in stats]
             moves    = [m.strip() for m in tooltip_moves.split('\n')]
-            
-            moves    = [re.findall(r'\s(.+?)($|\s)', m)[0].strip() for m in moves] #fix move regex to ignore pp (1/10)
+            moves    = [re.findall(r'\s(.+?)($|\()', m)[0][0].strip() for m in moves] #fix move regex to ignore pp (1/10)
 
-            print (name, lvl, thp, stats[0], stats[1], stats[2], stats[3], stats[4], types, moves)
-            try:
-                pokemon = simulate.Pokemon(name, lvl, thp, stats[0], stats[1], 
+            #print (name, lvl, thp, stats[0], stats[1], stats[2], stats[3], stats[4], types, moves)
+            pokemon = simulate.Pokemon(name, lvl, hp, thp, stats[0], stats[1], 
                                               stats[2], stats[3], stats[4], types, moves)
-                team.append(pokemon)
-            except:
-                print "error"
+            team.append(pokemon)
     
         return team
 
