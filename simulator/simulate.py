@@ -43,9 +43,9 @@ class Pokemon:
         self.moves = [Move(name) for name in move_names]
 
     def fill_avgs(self):
-        pokemon = data_pokemon[self.name]
-        formula_stat = lambda (base, lvl, iv, ev): (((base + iv) * 2 + (ev ** 0.5) / 4.0) * lvl / 100.0) + 5
-        formula_hp   = lambda (base, lvl, iv, ev): formula_stat(base, lvl, iv, ev) + lvl + 5
+        pokemon = data_pokemon[self.name.lower()]
+        formula_stat = lambda base, lvl, iv, ev: (((base + iv) * 2 + (ev ** 0.5) / 4.0) * lvl / 100.0) + 5
+        formula_hp   = lambda base, lvl, iv, ev: formula_stat(base, lvl, iv, ev) + lvl + 5
 
         stats_ = {
                 'hp': 'hp',
@@ -69,7 +69,8 @@ class Pokemon:
         "pick four random moves"
         movelist = pokemon['moves'][:]
         random.shuffle(movelist)
-        self.moves = [Move(m['move']['name']) for m in movelist]
+        move_names = [m['move']['name'] for m in movelist[:4]]
+        self.moves = [Move(m) for m in move_names]
 
     def attrs(self):
         return ('name', 'lvl', 'hp', 'totalhp', 'atk', 'def_', 
@@ -110,6 +111,8 @@ class Move:
         self.set_attrs(name, base_power, accuracy, pp, type_)
 
     def set_attrs(self, name, base_power, accuracy, pp, type_):
+        name = name.lower().replace(' ', '-')
+
         #edge-case
         if "hidden-power" in name:
             name, type_ = "hidden-power", name.split("hidden-power-")[1]
