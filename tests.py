@@ -1,8 +1,8 @@
 import sys
 import time
 import matplotlib.pylab as plt
-import simulate
-import minimax
+from simulator import simulate
+from simulator import minimax
 
 def time_minimax(max_depth=5, num_iters=5):
     team = simulate.gen_team()
