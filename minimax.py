@@ -7,8 +7,10 @@ Game State:
 import copy
 import itertools
 import simulate
+import simplejson as json
 MAX_DEPTH = 10
 TEAMSZ = 6
+effects = json.loads(open('data/move_effects.json', 'r').read())
 
 def avg(l):
     return sum(l) / float(len(l)) if len(l) > 0 else 0
@@ -148,3 +150,9 @@ def move_for_gamestate(gamestate, depth=MAX_DEPTH):
     tree.backprop()
     best_move = [c for c in tree.children if c.value == tree.value][0]
     return best_move.description
+
+def test():
+    if 'bug' in effects:
+        print "worked!"
+    else:
+        print "fail!"
