@@ -12,7 +12,7 @@ def time_minimax(max_depth=5, num_iters=5):
         print "Testing tree depth %s ..." % i,
         for t in range(num_iters):
             start = time.clock()
-            tree = minimax.generate_tree(team, False, i)
+            tree = minimax.generate_tree(team, True, i)
             end = time.clock()
             total += (end - start) / float(num_iters)
         times.append(total)
@@ -24,7 +24,7 @@ def time_minimax(max_depth=5, num_iters=5):
 
 def test_backprop(max_depth=5):
     team = simulate.gen_team()
-    tree = minimax.generate_tree(team, False, max_depth)
+    tree = minimax.generate_tree(team, True, max_depth)
     print "generate successful"
     tree.backprop()
     print "backprop successful"
