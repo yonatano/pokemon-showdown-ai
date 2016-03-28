@@ -18,7 +18,7 @@ def calc_damage(attacker, defender, move, crit=False):
     stab = 1.5 if (move.type_ in attacker.types) else 1
     atk = attacker.spatk if (move.type_ in attacker.types) else attacker.atk
     def_ = attacker.spdef if (move.type_ in attacker.types) else attacker.def_
-    type_ = reduce(operator.mul, [float(types[move.type_][type_names.index(t)]) for t in defender.types])
+    type_ = reduce(operator.mul, [float(data_types[move.type_][type_names.index(t)]) for t in defender.types])
     #crit = (random.uniform(0, 1.0) < 1/16.0) ? 2 : 1
     #rand = random.uniform(0.85, 1.0)
     crit = 2 if crit else 1
@@ -31,14 +31,14 @@ def calc_damage(attacker, defender, move, crit=False):
 class Pokemon:
     def __init__(self, name, lvl=85, hp=0, thp=0, atk=0, def_=0, spatk=0, spdef=0, speed=0, types=[], move_names=[]):
         self.name = name
-        self.lvl = lvl
-        self.hp = hp
-        self.totalhp = hp if thp == 0 else thp
-        self.atk = atk
-        self.def_ = def_
-        self.spatk = spatk
-        self.spdef = spdef
-        self.speed = speed
+        self.lvl = int(lvl)
+        self.hp = int(hp)
+        self.totalhp = self.hp if int(thp) == 0 else int(thp)
+        self.atk = int(atk)
+        self.def_ = int(def_)
+        self.spatk = int(spatk)
+        self.spdef = int(spdef)
+        self.speed = int(speed)
         self.types = types
         self.moves = [Move(name) for name in move_names]
 
@@ -60,7 +60,8 @@ class Pokemon:
             base = stat['base_stat']
             value = formula_stat(base, self.lvl, 31, 85) #IV:31 / EV:85 (averages)
             setattr(self, name, value)
-
+        self.totalhp = self.hp
+        
         if self.name == 'shedinja': #lol Pokemon is ridiculous
             self.hp = 1
 
@@ -122,9 +123,13 @@ class Move:
         move = data_moves[name]
         self.name = name
         self.base_power = move['power'] if not base_power else base_power
-        self.accuracy = move['accuracy'] if not accuracy else accuracy 
+        self.accuracy = move['accuracy'] if not accuracy else accuracy
         self.pp = move['pp'] if not pp else pp
         self.type_ = move['type']['name'] if not type_ else type_
+
+        self.base_power = int(self.base_power) if self.base_power is not None else 0
+        self.accuracy = int(self.accuracy) if self.accuracy is not None else 0
+        self.pp = int(self.pp) if self.pp is not None else 0
 
     def attrs(self):
         return ('name', 'base_power', 'pp', 'type_')
@@ -155,12 +160,12 @@ class Move:
 def gen_team():
     team = []
 
-    team.append(Pokemon('rayquaza', 100, 351, 200, 216, 336, 216, 226, ['dragon', 'flying'], ['draco-meteor', 'earthquake', 'dragon-ascent', 'extreme-speed']))
-    team.append(Pokemon('lucario', 100, 281, 200, 176, 266, 176, 216, ['fighting', 'steel'], ['shadow-ball', 'close-combat', 'bullet-punch', 'crunch']))
-    team.append(Pokemon('giratina', 100, 441, 259, 276, 212, 276, 216, ['dragon', 'ghost'], ['draco-meteor', 'earthquake', 'dragon-ascent', 'extreme-speed']))
-    team.append(Pokemon('dragonite', 85, 276, 259, 192, 201, 201, 167, ['flying', 'dragon'], ['dragon-claw', 'dragon-pulse', 'superpower', 'aqua-tail']))
-    team.append(Pokemon('heracross', 100, 301, 286, 186, 116, 226, 206, ['fighting', 'bug'], ['brick-break', 'tackle', 'body-slam', 'megahorn']))
-    team.append(Pokemon('cubone', 100, 241, 136, 226, 116, 136, 106, ['ground'], ['earthquake', 'fire-blast', 'fire-punch', 'body-slam']))
+    team.append(Pokemon('rayquaza', 100, 351, 351, 200, 216, 336, 216, 226, ['dragon', 'flying'], ['draco-meteor', 'earthquake', 'dragon-ascent', 'extreme-speed']))
+    team.append(Pokemon('lucario', 100, 281, 281, 200, 176, 266, 176, 216, ['fighting', 'steel'], ['shadow-ball', 'close-combat', 'bullet-punch', 'crunch']))
+    team.append(Pokemon('giratina', 100, 441, 441, 259, 276, 212, 276, 216, ['dragon', 'ghost'], ['draco-meteor', 'earthquake', 'dragon-ascent', 'extreme-speed']))
+    team.append(Pokemon('dragonite', 85, 276, 276, 259, 192, 201, 201, 167, ['flying', 'dragon'], ['dragon-claw', 'dragon-pulse', 'superpower', 'aqua-tail']))
+    team.append(Pokemon('heracross', 100, 301, 301, 286, 186, 116, 226, 206, ['fighting', 'bug'], ['brick-break', 'tackle', 'body-slam', 'megahorn']))
+    team.append(Pokemon('cubone', 100, 241, 241, 136, 226, 116, 136, 106, ['ground'], ['earthquake', 'fire-blast', 'fire-punch', 'body-slam']))
 
     for i in range(6):
         team.append(avg_pokemon())
@@ -168,7 +173,7 @@ def gen_team():
     return team
 
 def avg_pokemon():
-    return Pokemon('?', 100, 200, 286, 186, 116, 226, 206, ['normal'], ['brick-break', 'tackle', 'body-slam', 'megahorn'])
+    return Pokemon('?', 100, 200, 200, 286, 186, 116, 226, 206, ['normal'], ['brick-break', 'tackle', 'body-slam', 'megahorn'])
 
 
 
