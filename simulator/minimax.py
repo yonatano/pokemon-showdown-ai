@@ -10,7 +10,8 @@ import simulate
 import simplejson as json
 MAX_DEPTH = 10
 TEAMSZ = 6
-effects = json.loads(open('data/move_effects.json', 'r').read())
+effects = json.loads(open('../data/move_effects.json', 'r').read())
+
 
 def avg(l):
     return sum(l) / float(len(l)) if len(l) > 0 else 0
@@ -66,6 +67,7 @@ def transform_state_attack(gamestate, ai_turn=True):
     for i,move in enumerate(active_pokemon.moves):
         if move.pp > 0:
             next_ = copy.deepcopy(gamestate)
+            # update_stat_stages(next_[curr], next_[opp], move)
             dmg = simulate.calc_damage(active_pokemon, next_[opp], move)
             next_[curr].moves[i].pp -= 1
             next_[opp].hp -= dmg
@@ -75,6 +77,23 @@ def transform_state_attack(gamestate, ai_turn=True):
             next_states.append([next_, desc])
 
     return next_states
+
+# def update_stat_stages(current, opponent, move): #todo test in terminal. create two pokemon, test moves on them that change stat, then test next_moves()
+#     effect_list = effects.get(move.name, [])
+#     effect_chance = move['effect_chance']
+#     rand = simulate.random.randrange(1, 101)
+#     if effect_chance is null or rand <= effect_chance:
+#         for i, effect in enumerate(effect_list):
+#             if effect is not 0:
+#                 pokemon = current if effect > 0 else opponent
+#                 pokemon.stage_multipliers[i][0] += effect
+#                 pokemon.stage_multipliers[i][0] = 6 if pokemon.stage_multipliers[i][0] > 6  else pokemon.stage_multipliers[i][0]
+#                 pokemon.stage_multipliers[i][0] = -6 if pokemon.stage_multipliers[i][0] < 6 else pokemon.stage_multipliers[i][0]
+#                 if i < 5: #there is a different equation for evasion and accuracy
+#                     pokemon.stage_multipliers[i][1] = (2 + pokemon.stage_multipliers[i][0])/2.0
+#                 else:
+#                     pokemon.stage_multipliers[i][1] = 3.0/(3 + pokemon.stage_multipliers[i][0])
+
 
 def transform_state_swap(gamestate, ai_turn=True):
     """
@@ -154,7 +173,4 @@ def move_for_gamestate(gamestate, depth=MAX_DEPTH):
     return best_move.description
 
 def test():
-    if 'bug' in effects:
-        print "worked!"
-    else:
-        print "fail!"
+    print "hi"

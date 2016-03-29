@@ -82,11 +82,11 @@ def get_effects():
     Sp_attack_3 = ['tail-glow']
     Sp_attack_min_1 = ['confide','mist-ball','moonblast','mystical-fire','noble-roar','parting-shot','secret-power','snarl','struggle-bug','venom-drench']
     Sp_attack_min_2 = ['captivate','draco-meteor','eerie-impulse','leaf-storm','memento','overheat','psycho-boost']
-    Sp_deffense_1 = ['ancient-power','aromatic-mist','calm-mind','charge','cosmic-power','defend-order','magnetic-flux','ominous-wind','quiver-dance','silver-wind','stockpile']
-    Sp_deffense_2 = ['acupressure','amnesia','geomancy']
-    Sp_deffense_min_1 = ['acid','bug-buzz','close-combat','crunch','dragon-ascent','earth-power','energy-ball','flash-cannon','focus-blast','luster-purge',
+    Sp_defense_1 = ['ancient-power','aromatic-mist','calm-mind','charge','cosmic-power','defend-order','magnetic-flux','ominous-wind','quiver-dance','silver-wind','stockpile']
+    Sp_defense_2 = ['acupressure','amnesia','geomancy']
+    Sp_defense_min_1 = ['acid','bug-buzz','close-combat','crunch','dragon-ascent','earth-power','energy-ball','flash-cannon','focus-blast','luster-purge',
     'psychic','shadow-ball','shell-smash','v-create']
-    Sp_deffense_min_2 = ['acid-spray','fake-tears','metal-sound','seed-flare']
+    Sp_defense_min_2 = ['acid-spray','fake-tears','metal-sound','seed-flare']
     speed_1 = ['ancient-power','dragon-dance','flame-charge','ominous-wind','quiver-dance','silver-wind']
     speed_2 = ['acupressure','agility','autotomize','geomancy','rock-polish','shell-smash','shift-gear']
     speed_min_1 = ['bubble','bubble-beam','bulldoze','constrict','curse','glaciate','hammer-arm','icy-wind','low-sweep','mud-shot','rock-tomb','secret-power','sticky-web','v-create','venom-drench']
@@ -101,9 +101,10 @@ def get_effects():
     place_holder = []
 
     effects_list = [attack_1,attack_2,attack_3,attack_min_1,attack_min_2,place_holder,defense_1,defense_2,defense_3,defense_min_1,defense_min_2,place_holder,Sp_attack_1,Sp_attack_2,Sp_attack_3,
-    Sp_attack_min_1,Sp_attack_min_2,place_holder,Sp_deffense_1,Sp_deffense_2,place_holder,Sp_deffense_min_1,Sp_deffense_min_2,place_holder,speed_1,speed_2,place_holder,speed_min_1,speed_min_2,place_holder,
+    Sp_attack_min_1,Sp_attack_min_2,place_holder,Sp_defense_1,Sp_defense_2,place_holder,Sp_defense_min_1,Sp_defense_min_2,place_holder,speed_1,speed_2,place_holder,speed_min_1,speed_min_2,place_holder,
     evasion_1,evasion_2,place_holder,evasion_min_1,evasion_min_2,place_holder,accuracy_1,accuracy_2,place_holder,accuracy_min_1]
-    
+    #order = attack,defense,special attack,special defense,speed,evasion,accuracy
+
     effects_helper(effect_dictionary, effects_list)
     f = open('move_effects.json', 'w')
     f.write(json.dumps(effect_dictionary, indent=4))  

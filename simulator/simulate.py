@@ -16,16 +16,48 @@ def calc_damage(attacker, defender, move, crit=False):
     "calculate modifier and damage"
     defender.affected = True
     stab = 1.5 if (move.type_ in attacker.types) else 1
-    atk = attacker.spatk if (move.type_ in attacker.types) else attacker.atk
-    def_ = attacker.spdef if (move.type_ in attacker.types) else attacker.def_
+
+    print move.damage_class
+    if (move.damage_class == 'special'): 
+        atk = attacker.spatk
+        def_ = defender.spdef 
+        atk_multiplier = attacker.stage_multipliers[2][1]
+        def_multiplier = defender.stage_multipliers[3][1]
+    else:
+        atk = attacker.atk
+        def_ = defender.def_
+        atk_multiplier = attacker.stage_multipliers[0][1]
+        def_multiplier = defender.stage_multipliers[1][1]
+    # atk = attacker.spatk if (move.type_ in attacker.types) else attacker.atk
+    # def_ = attacker.spdef if (move.type_ in attacker.types) else attacker.def_ is this right?? Nope!
     type_ = reduce(operator.mul, [float(data_types[move.type_][type_names.index(t)]) for t in defender.types])
     #crit = (random.uniform(0, 1.0) < 1/16.0) ? 2 : 1
     #rand = random.uniform(0.85, 1.0)
     crit = 2 if crit else 1
     rand = 0.925
     modifier = stab * type_ * crit * rand
-    damage = (2 * attacker.lvl + 10) / 250.0 * atk / def_ * move.base_power + 2
+    damage = (2 * attacker.lvl + 10) / 250.0 * (atk * atk_multiplier) / (def_ * def_multiplier) * move.base_power + 2
     damage *= modifier
+    print "atk: "
+    print atk 
+    print "def: " 
+    print def_ 
+    print "atk_multiplier: "
+    print atk_multiplier 
+    print "def_multiplier: "
+    print def_multiplier
+    print "stab: "
+    print stab 
+    print "type_: "
+    print type_ 
+    print "crit: " 
+    print crit 
+    print "rand: "
+    print rand
+    print "modifier: "
+    print modifier 
+    print "damage: " 
+    print damage
     return int(damage)
 
 class Pokemon:
@@ -41,6 +73,7 @@ class Pokemon:
         self.speed = int(speed)
         self.types = types
         self.moves = [Move(name) for name in move_names]
+        self.stage_multipliers = [[0,1],[0,1],[0,1],[0,1],[0,1],[0,1],[0,1]]
 
     def fill_avgs(self):
         pokemon = data_pokemon[self.name.lower()]
@@ -130,6 +163,7 @@ class Move:
         self.base_power = int(self.base_power) if self.base_power is not None else 0
         self.accuracy = int(self.accuracy) if self.accuracy is not None else 0
         self.pp = int(self.pp) if self.pp is not None else 0
+        self.damage_class = move['damage_class']['name']
 
     def attrs(self):
         return ('name', 'base_power', 'pp', 'type_')
