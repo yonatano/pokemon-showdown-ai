@@ -2,6 +2,7 @@
 Used to simulate a random pokemon battle as per the rules of PokemonShowdown.
 """
 import os
+import re
 import random
 import operator
 import simplejson as json
@@ -14,10 +15,8 @@ type_names = sorted(data_types.keys())
 
 def calc_damage(attacker, defender, move, crit=False):
     "calculate modifier and damage"
-    defender.affected = True
     stab = 1.5 if (move.type_ in attacker.types) else 1
 
-    print move.damage_class
     if (move.damage_class == 'special'): 
         atk = attacker.spatk
         def_ = defender.spdef 
@@ -28,41 +27,20 @@ def calc_damage(attacker, defender, move, crit=False):
         def_ = defender.def_
         atk_multiplier = attacker.stage_multipliers[0][1]
         def_multiplier = defender.stage_multipliers[1][1]
-    # atk = attacker.spatk if (move.type_ in attacker.types) else attacker.atk
-    # def_ = attacker.spdef if (move.type_ in attacker.types) else attacker.def_ is this right?? Nope!
+
     type_ = reduce(operator.mul, [float(data_types[move.type_][type_names.index(t)]) for t in defender.types])
     #crit = (random.uniform(0, 1.0) < 1/16.0) ? 2 : 1
     #rand = random.uniform(0.85, 1.0)
     crit = 2 if crit else 1
     rand = 0.925
     modifier = stab * type_ * crit * rand
-    damage = (2 * attacker.lvl + 10) / 250.0 * (atk * atk_multiplier) / (def_ * def_multiplier) * move.base_power + 2
+    damage = (2 * attacker.lvl + 10) / 250.0 * (atk * atk_multiplier) / float(def_ * def_multiplier) * move.base_power + 2
     damage *= modifier
-    print "atk: "
-    print atk 
-    print "def: " 
-    print def_ 
-    print "atk_multiplier: "
-    print atk_multiplier 
-    print "def_multiplier: "
-    print def_multiplier
-    print "stab: "
-    print stab 
-    print "type_: "
-    print type_ 
-    print "crit: " 
-    print crit 
-    print "rand: "
-    print rand
-    print "modifier: "
-    print modifier 
-    print "damage: " 
-    print damage
     return int(damage)
 
 class Pokemon:
     def __init__(self, name, lvl=85, hp=0, thp=0, atk=0, def_=0, spatk=0, spdef=0, speed=0, types=[], move_names=[]):
-        self.name = name
+        self.name = self.clean_name(name)
         self.lvl = int(lvl)
         self.hp = int(hp)
         self.totalhp = self.hp if int(thp) == 0 else int(thp)
@@ -74,6 +52,13 @@ class Pokemon:
         self.types = types
         self.moves = [Move(name) for name in move_names]
         self.stage_multipliers = [[0,1],[0,1],[0,1],[0,1],[0,1],[0,1],[0,1]]
+
+    @staticmethod
+    def clean_name(name):
+        re_clean_name = re.compile(r"(.+?)\s")
+        if re_clean_name.match(name):
+            name = re_clean_name.match(name).groups()[0]
+        return name
 
     def fill_avgs(self):
         pokemon = data_pokemon[self.name.lower()]
@@ -94,7 +79,7 @@ class Pokemon:
             value = formula_stat(base, self.lvl, 31, 85) #IV:31 / EV:85 (averages)
             setattr(self, name, value)
         self.totalhp = self.hp
-        
+
         if self.name == 'shedinja': #lol Pokemon is ridiculous
             self.hp = 1
 
@@ -126,13 +111,11 @@ class Pokemon:
         return 0
 
     def __eq__(self, other):
-        return cmp(self, other) == 0
+        other_vals = other.__values() if other is not None else ()
+        return [v for v in self.__values()] == [v for v in other_vals]
 
-    def __lt__(self, other):
-        return cmp(self, other) < 0
-
-    def __gt__(self, other):
-        return cmp(self, other) > 0
+    def __ne__(self, other):
+        return not self == other
 
     def __repr__(self):
         return "<%s>" % self.__str__()
@@ -141,8 +124,9 @@ class Pokemon:
         return "%s hp:%s" % (self.name, self.hp)
 
 class Move:
-    def __init__(self, name, base_power=None, accuracy=None, pp=None, type_=None):
+    def __init__(self, name, base_power=None, accuracy=None, pp=None, type_=None, placeholder=False):
         self.set_attrs(name, base_power, accuracy, pp, type_)
+        self.placeholder = placeholder
 
     def set_attrs(self, name, base_power, accuracy, pp, type_):
         name = name.lower().replace(' ', '-')
@@ -159,6 +143,7 @@ class Move:
         self.accuracy = move['accuracy'] if not accuracy else accuracy
         self.pp = move['pp'] if not pp else pp
         self.type_ = move['type']['name'] if not type_ else type_
+        self.special = (move['damage_class']['name'] == "special")
 
         self.base_power = int(self.base_power) if self.base_power is not None else 0
         self.accuracy = int(self.accuracy) if self.accuracy is not None else 0
@@ -172,7 +157,7 @@ class Move:
         return hash(self.attrs())
 
     def __values(self):
-        cmp_attrs = ['name', 'base_power', 'type_']
+        cmp_attrs = ['name']
         return (getattr(self, attr) for attr in self.attrs())
 
     def __cmp__(self, other):
@@ -183,7 +168,11 @@ class Move:
         return 0
 
     def __eq__(self, other):
-        return cmp(self, other) == 0
+        other_vals = other.__values() if other is not None else ()
+        return [v for v in self.__values()] == [v for v in other_vals]
+
+    def __ne__(self, other):
+        return not self == other
 
     def __repr__(self):
         return "<move: %s>" % self.__str__()
@@ -208,7 +197,5 @@ def gen_team():
 
 def avg_pokemon():
     return Pokemon('?', 100, 200, 200, 286, 186, 116, 226, 206, ['normal'], ['brick-break', 'tackle', 'body-slam', 'megahorn'])
-
-
 
 
