@@ -16,15 +16,15 @@ type_names = sorted(data_types.keys())
 def calc_damage(attacker, defender, move, crit=False):
     "calculate modifier and damage"
     stab = 1.5 if (move.type_ in attacker.types) else 1
-    atk = attacker.spatk if (move.type_ in attacker.types) else attacker.atk
-    def_ = attacker.spdef if (move.type_ in attacker.types) else attacker.def_
+    atk = attacker.spatk if move.special else attacker.atk
+    def_ = defender.spdef if move.special else defender.def_
     type_ = reduce(operator.mul, [float(data_types[move.type_][type_names.index(t)]) for t in defender.types])
     #crit = (random.uniform(0, 1.0) < 1/16.0) ? 2 : 1
     #rand = random.uniform(0.85, 1.0)
     crit = 2 if crit else 1
     rand = 0.925
     modifier = stab * type_ * crit * rand
-    damage = (2 * attacker.lvl + 10) / 250.0 * atk / def_ * move.base_power + 2
+    damage = (2 * attacker.lvl + 10) / 250.0 * atk / float(def_) * move.base_power + 2
     damage *= modifier
     return int(damage)
 
@@ -132,6 +132,7 @@ class Move:
         self.accuracy = move['accuracy'] if not accuracy else accuracy
         self.pp = move['pp'] if not pp else pp
         self.type_ = move['type']['name'] if not type_ else type_
+        self.special = (move['damage_class']['name'] == "special")
 
         self.base_power = int(self.base_power) if self.base_power is not None else 0
         self.accuracy = int(self.accuracy) if self.accuracy is not None else 0
