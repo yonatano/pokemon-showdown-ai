@@ -63,95 +63,52 @@ def get_replay_urls(user):
 
 def get_effects():
     effect_dictionary = {}
-    attack_1 = ['ancient-power','bulk-up', 'coil', 'curse', 'dragon-dance','growth','hone-claws','howl','meditate','metal-claw', 'meteor-mash', 'ominous-wind', 'power-up-punch',
-    'rage', 'rototiller','sharpen','shift-gear','silver-wind','work-up']
-    attack_2 = ['acupressure', 'fell-stinger', 'shell-smash', 'swagger', 'swords-dance']
-    attack_3 = ['belly-drum']
-    attack_min_1 = ['aurora-beam','baby-doll-eyes','growl','noble-roar','parting-shot','play-nice','play-rough','secret-power','superpower',
-    'tickle','venom-drench']
-    attack_min_2 = ['charm','feather-dance','kings-shield','memento']
-    defense_1 = ['ancient-power','bulk-up','coil','cosmic-power','curse','defend-order','defense-curl','diamond-storm','flower-shield','harden','magnetic-flux',
-    'ominous-wind','silver-wind','skull-bash','steel-wing','stockpile','withdraw']
-    defense_2 = ['acid-armor','acupressure','barrier','iron-defense']
-    defense_3 = ['cotton-guard']
-    defense_min_1 = ['acid','close-combat','crunch','crush-claw','dragon-ascent','iron-tail','leer','razor-shell','rock-smash','secret-power','shell-smash',
-    'superpower','tail-whip','tickle','v-create']
-    defense_min_2 = ['screech']
-    Sp_attack_1 = ['ancient-power', 'calm-mind', 'charge-beam','fiery-dance','flatter','growth','ominous-wind','rototiller','silver-wind','quiver-dance','work-up']
-    Sp_attack_2 = ['acupressure','geomancy','nasty-plot','shell-smash']
-    Sp_attack_3 = ['tail-glow']
-    Sp_attack_min_1 = ['confide','mist-ball','moonblast','mystical-fire','noble-roar','parting-shot','secret-power','snarl','struggle-bug','venom-drench']
-    Sp_attack_min_2 = ['captivate','draco-meteor','eerie-impulse','leaf-storm','memento','overheat','psycho-boost']
-    Sp_defense_1 = ['ancient-power','aromatic-mist','calm-mind','charge','cosmic-power','defend-order','magnetic-flux','ominous-wind','quiver-dance','silver-wind','stockpile']
-    Sp_defense_2 = ['acupressure','amnesia','geomancy']
-    Sp_defense_min_1 = ['acid','bug-buzz','close-combat','crunch','dragon-ascent','earth-power','energy-ball','flash-cannon','focus-blast','luster-purge',
-    'psychic','shadow-ball','shell-smash','v-create']
-    Sp_defense_min_2 = ['acid-spray','fake-tears','metal-sound','seed-flare']
-    speed_1 = ['ancient-power','dragon-dance','flame-charge','ominous-wind','quiver-dance','silver-wind']
-    speed_2 = ['acupressure','agility','autotomize','geomancy','rock-polish','shell-smash','shift-gear']
-    speed_min_1 = ['bubble','bubble-beam','bulldoze','constrict','curse','glaciate','hammer-arm','icy-wind','low-sweep','mud-shot','rock-tomb','secret-power','sticky-web','v-create','venom-drench']
-    speed_min_2 = ['cotton-spore','scary-face','string-shot']
-    evasion_1 = ['double-team']
-    evasion_2 = ['minimize','acupressure']
-    evasion_min_1 = ['defog']
-    evasion_min_2 = ['gravity', 'sweet-scent']
-    accuracy_1 = ['hone-claws','coil']
-    accuracy_2 = ['acupressure']
-    accuracy_min_1 = ['flash','kinesis','leaf-tornado','mirror-shot','mud-bomb','mud-slap','muddy-water','night-daze','octazooka','sand-attack','secret-power','smokescreen']
-    place_holder = []
+    #list order = attack,defense,special attack,special defense,speed,evasion,accuracy
 
-    effects_list = [attack_1,attack_2,attack_3,attack_min_1,attack_min_2,place_holder,defense_1,defense_2,defense_3,defense_min_1,defense_min_2,place_holder,Sp_attack_1,Sp_attack_2,Sp_attack_3,
-    Sp_attack_min_1,Sp_attack_min_2,place_holder,Sp_defense_1,Sp_defense_2,place_holder,Sp_defense_min_1,Sp_defense_min_2,place_holder,speed_1,speed_2,place_holder,speed_min_1,speed_min_2,place_holder,
-    evasion_1,evasion_2,place_holder,evasion_min_1,evasion_min_2,place_holder,accuracy_1,accuracy_2,place_holder,accuracy_min_1]
-    #order = attack,defense,special attack,special defense,speed,evasion,accuracy
+    effect_moves = json.loads(open('effect_moves.json', 'r').read())
+    for move in effect_moves:
+        user_list = [0,0,0,0,0,0,0]
+        opponent_list = [0,0,0,0,0,0,0]
+        
+        for stat in effect_moves[move]['stat_changes']:
+            pokemon_affected = stat['stat']['pokemon']
+            list_ = user_list if pokemon_affected == 'user' else opponent_list
+            list_ = [0,0,0,0,0,0,0] if pokemon_affected == 'ally' or pokemon_affected == 'both' else list_ #need to handle special cases
+            add_effect_to_list(list_, stat['stat']['name'], stat['change'])
+        effect_dictionary[move] = {'user': user_list, 'opponent':opponent_list}
 
-    effects_helper(effect_dictionary, effects_list)
     f = open('move_effects.json', 'w')
     f.write(json.dumps(effect_dictionary, indent=4))  
     f.close()
 
-def effects_helper(dict_, effects_list):
-    for i,move_list in enumerate(effects_list):
-        value = get_value(i)
-        effect_index = get_effect_index(i)
-        for move in move_list:
-            if move in dict_:
-                dict_[move][effect_index] = value
-            else:
-                effects = [0,0,0,0,0,0,0]
-                effects[effect_index] = value
-                dict_[move] = effects
-
-def get_value(index):
-    if index % 6 == 0:
-        return 1
-    elif index % 6 == 1:
-        return 2
-    elif index % 6 == 2:
-        return 3
-    elif index % 6 == 3:
-        return -1
-    elif index % 6 == 4:
-        return -2
+def add_effect_to_list(list_, stat_name, stat_change):
+    if stat_name == 'attack':
+        list_[0] = stat_change
+    elif stat_name == 'defense':
+        list_[1] = stat_change
+    elif stat_name == 'special-attack':
+        list_[2] = stat_change
+    elif stat_name == 'special-defense':
+        list_[3] = stat_change
+    elif stat_name == 'speed':
+        list_[4] = stat_change
+    elif stat_name == 'evasion':
+        list_[5] = stat_change
+    elif stat_name == 'accuracy':
+        list_[6] = stat_change
     else:
-        return -3
+        print "error, unknown stat name: " + stat_name
 
-def get_effect_index(index):
-    num_per_type = 6
-    if index < num_per_type:
-        return 0
-    elif index < num_per_type*2:
-        return 1
-    elif index < num_per_type*3:
-        return 2
-    elif index < num_per_type*4:
-        return 3
-    elif index < num_per_type*5:
-        return 4
-    elif index < num_per_type*6:
-        return 5
-    else:
-        return 6
+def get_all_effect_moves():
+    data_moves = json.loads(open('moves.json', 'r').read())
+    effect_moves = {}
+    for move in enumerate(data_moves):
+        move_name = move[1]
+        if len(data_moves[move_name]['stat_changes']) > 0:
+            effect_moves[move_name] = data_moves[move_name]
+    f = open('effect_moves.json', 'w')
+    f.write(json.dumps(effect_moves, indent=4))
+    f.close
 
 
 def get_and_format_replay(replay_url):

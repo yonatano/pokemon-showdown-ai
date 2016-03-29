@@ -149,6 +149,7 @@ class Move:
         self.accuracy = int(self.accuracy) if self.accuracy is not None else 0
         self.pp = int(self.pp) if self.pp is not None else 0
         self.damage_class = move['damage_class']['name']
+        self.effect_chance = move['effect_chance']
 
     def attrs(self):
         return ('name', 'base_power', 'pp', 'type_')
@@ -197,5 +198,12 @@ def gen_team():
 
 def avg_pokemon():
     return Pokemon('?', 100, 200, 200, 286, 186, 116, 226, 206, ['normal'], ['brick-break', 'tackle', 'body-slam', 'megahorn'])
+
+def e_team():
+    team = []
+    team.append(Pokemon('heracross', 100, 301, 301, 286, 186, 116, 226, 206, ['fighting', 'bug'], ['growth', 'superpower', 'body-slam', 'megahorn']))
+    team.append(Pokemon('cubone', 100, 241, 241, 136, 226, 116, 136, 106, ['ground'], ['meteor-mash', 'tickle', 'fire-punch', 'body-slam']))
+
+    return team
 
 
