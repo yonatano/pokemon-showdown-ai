@@ -80,7 +80,6 @@ def transform_state_attack(gamestate, ai_turn=True):
 
 def update_stat_stages(current, opponent, move):
     effect_lists = effects.get(move.name, [])
-    print effect_lists
     effect_chance = move.effect_chance
     rand = simulate.random.randrange(1, 101)
     if effect_chance is None or rand <= effect_chance:

@@ -34,6 +34,8 @@ def calc_damage(attacker, defender, move, crit=False):
     crit = 2 if crit else 1
     rand = 0.925
     modifier = stab * type_ * crit * rand
+    # if def_multiplier == 0:
+    #     print defender.stage_multipliers
     damage = (2 * attacker.lvl + 10) / 250.0 * (atk * atk_multiplier) / float(def_ * def_multiplier) * move.base_power + 2
     damage *= modifier
     return int(damage)
