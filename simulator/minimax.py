@@ -68,9 +68,9 @@ def transform_state_attack(gamestate, ai_turn=True):
         if move.pp > 0:
             next_ = copy.deepcopy(gamestate)
             dmg = simulate.calc_damage(active_pokemon, next_[opp], move)
-            update_stat_stages(next_[curr], next_[opp], move) #need to test in tree setting
             next_[curr].moves[i].pp -= 1
             next_[opp].hp -= dmg
+            update_stat_stages(next_[curr], next_[opp], move) #need to test in tree setting
             desc = [('move', move.name)]
             if next_[opp].hp <= 0:
                 next_[opp] = None
@@ -80,20 +80,44 @@ def transform_state_attack(gamestate, ai_turn=True):
 
 def update_stat_stages(current, opponent, move):
     effect_lists = effects.get(move.name, [])
+    if len(effect_lists) == 0:
+        return None
     effect_chance = move.effect_chance
     rand = simulate.random.randrange(1, 101)
     if effect_chance is None or rand <= effect_chance:
         for player in effect_lists:
             pokemon = current if player == "user" else opponent
             for i, effect in enumerate(effect_lists[player]):
-                pokemon.stage_multipliers[i][0] += effect
-                pokemon.stage_multipliers[i][0] = 6 if pokemon.stage_multipliers[i][0] > 6  else pokemon.stage_multipliers[i][0]
-                pokemon.stage_multipliers[i][0] = -6 if pokemon.stage_multipliers[i][0] < -6 else pokemon.stage_multipliers[i][0]
-                if i < 5: #there is a different equation for evasion and accuracy
-                    pokemon.stage_multipliers[i][1] = (2 + pokemon.stage_multipliers[i][0])/2.0
-                else:
-                    pokemon.stage_multipliers[i][1] = 3.0/(3 + pokemon.stage_multipliers[i][0])
+                if effect != 0:
+                    stat = get_effect_stat(i)
+                    pokemon.stage_multipliers[stat]['count'] += effect
+                    pokemon.stage_multipliers[stat]['count'] = 6 if pokemon.stage_multipliers[stat]['count'] > 6  else pokemon.stage_multipliers[stat]['count']
+                    pokemon.stage_multipliers[stat]['count'] = -6 if pokemon.stage_multipliers[stat]['count'] < -6 else pokemon.stage_multipliers[stat]['count']
+                    count = pokemon.stage_multipliers[stat]['count']
+                    numerator_shift_val = count if count > 0 else 0
+                    denomenator_shift_val = -count if count < 0 else 0
+                    if i < 5: #there is a different equation for evasion and accuracy
+                        pokemon.stage_multipliers[stat]['multiplier'] = (2 + numerator_shift_val)/(2.0 + denomenator_shift_val)
+                    else:
+                        if i == 5:
+                            numerator_shift_val, denomenator_shift_val = denomenator_shift_val, numerator_shift_val
+                        pokemon.stage_multipliers[stat]['multiplier'] = (3.0 + numerator_shift_val)/(3.0 + denomenator_shift_val)
 
+def get_effect_stat(i):
+    if i == 0:
+        return 'attack'
+    elif i == 1:
+        return 'defense'
+    elif i == 2:
+        return 'special-attack'
+    elif i == 3:
+        return 'special-defense'
+    elif i == 4: 
+        return 'speed'
+    elif i == 5:
+        return 'evasion'
+    else:
+        return 'accuracy'
 
 
 def transform_state_swap(gamestate, ai_turn=True):
