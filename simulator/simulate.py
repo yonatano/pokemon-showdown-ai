@@ -16,17 +16,10 @@ type_names = sorted(data_types.keys())
 def calc_damage(attacker, defender, move, crit=False):
     "calculate modifier and damage"
     stab = 1.5 if (move.type_ in attacker.types) else 1
-
-    if (move.damage_class == 'special'): 
-        atk = attacker.spatk
-        def_ = defender.spdef 
-        atk_multiplier = attacker.stage_multipliers[2][1]
-        def_multiplier = defender.stage_multipliers[3][1]
-    else:
-        atk = attacker.atk
-        def_ = defender.def_
-        atk_multiplier = attacker.stage_multipliers[0][1]
-        def_multiplier = defender.stage_multipliers[1][1]
+    atk = attack.spatk if move.damage_class == 'special' else attacker.atk
+    def_ = defender.spdef if move.damage_class == 'special' else defender.def_
+    atk_multiplier = attacker.stage_multipliers[2][1] and attacker.stage_multipliers[0][1]
+    def_multiplier = attacker.stage_multipliers[3][1] and defender.stage_multipliers[1][1]
 
     type_ = reduce(operator.mul, [float(data_types[move.type_][type_names.index(t)]) for t in defender.types])
     #crit = (random.uniform(0, 1.0) < 1/16.0) ? 2 : 1
@@ -53,7 +46,7 @@ class Pokemon:
         self.speed = int(speed)
         self.types = types
         self.moves = [Move(name) for name in move_names]
-        self.stage_multipliers = [[0,1],[0,1],[0,1],[0,1],[0,1],[0,1],[0,1]]
+        self.stage_multipliers = [{multiplier:1, count:0}] * 7
 
     @staticmethod
     def clean_name(name):
