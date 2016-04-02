@@ -69,7 +69,7 @@ def transform_state_attack(gamestate, ai_turn=True):
             next_ = copy.deepcopy(gamestate)
             dmg = simulate.calc_damage(active_pokemon, next_[opp], move)
             next_[curr].moves[i].pp -= 1
-            next_[opp].hp -= dmg
+            next_[opp].hp -= dmg * move.accuracy / 100.0 #weight damage by move accuracy
             update_stat_stages(next_[curr], next_[opp], move) #need to test in tree setting
             desc = [('move', move.name)]
             if next_[opp].hp <= 0:
