@@ -10,8 +10,6 @@ import simulate
 import simplejson as json
 MAX_DEPTH = 10
 TEAMSZ = 6
-data = simulate.os.path.join(simulate.os.path.dirname(__file__), '../data')
-effects = json.loads(open('%s/move_effects.json' % data, 'r').read())
 
 def avg(l):
     return sum(l) / float(len(l)) if len(l) > 0 else 0
@@ -65,23 +63,21 @@ def transform_state_attack(gamestate, ai_turn=True):
 
     active_pokemon = gamestate[curr]
     for i,move in enumerate(active_pokemon.moves):
-        if move.pp > 0:
-            next_ = copy.deepcopy(gamestate)
-            dmg = simulate.calc_damage(active_pokemon, next_[opp], move)
-            next_[curr].moves[i].pp -= 1
-            next_[opp].hp -= dmg * move.accuracy / 100.0 #weight damage by move accuracy
-            update_stat_stages(next_[curr], next_[opp], move) #need to test in tree setting
-            desc = [('move', move.name)]
-            if next_[opp].hp <= 0:
-                next_[opp] = None
-            next_states.append([next_, desc])
-
+        next_ = copy.deepcopy(gamestate)
+        states = next_[curr].moves[i].use_move(next_)
+        desc = [('move', move.name)]
+        for state in states:
+            if state[curr].hp <= 0:
+                state[curr] = None
+            if state[opp].hp <= 0:
+                state[opp] = None
+            next_states.append([state, desc])
     return next_states
 
 def update_stat_stages(current, opponent, move):
     effect_lists = effects.get(move.name, [])
     if len(effect_lists) == 0:
-        return None
+        return None 
     effect_chance = move.effect_chance
     rand = simulate.random.randrange(1, 101)
     if effect_chance is None or rand <= effect_chance:
