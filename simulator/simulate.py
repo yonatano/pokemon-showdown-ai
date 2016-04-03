@@ -143,7 +143,7 @@ class Pokemon:
         return "<%s>" % self.__str__()
 
     def __str__(self):
-        return "%s hp:%s stats:\n%s" % (self.name, self.hp, {s:getattr(self, s) for s in self.stats()})
+        return "%s hp:%s" % (self.name, self.hp)
 
 class Move:
     def __init__(self, name, base_power=None, accuracy=None, pp=None, type_=None, placeholder=False):
@@ -174,14 +174,15 @@ class Move:
         self.effect_chance = 1.0 if move['effect_chance'] is None else move['effect_chance'] / 100.0
         self.has_effect = move['effect_chance'] is not None
 
-    def use_move(self, gamestate):
+    def use_move(self, gamestate, ai_turn=True):
         """
         Simulate the change in game state after using this move. Returns a list of possible resultant game states.
         """
         results = []
         gamestate = copy.deepcopy(gamestate)
-        active_self = gamestate[0]
-        active_opp = gamestate[TEAMSZ]
+        curr, opp = 0 if ai_turn else TEAMSZ, TEAMSZ if ai_turn else 0
+        active_self = gamestate[curr]
+        active_opp = gamestate[opp]
 
         if self.pp <= 0 or active_self is None:
             return []
@@ -208,8 +209,8 @@ class Move:
             active_opp.hp -= dmg * min(100.0, hit_rate) / 100.0 #weight damage by move accuracy
 
             if active_opp.hp <= 0:
-                gamestate[TEAMSZ] = None
-
+                gamestate[opp] = None
+                
         self.pp -= 1
         results.append(gamestate)
         return results

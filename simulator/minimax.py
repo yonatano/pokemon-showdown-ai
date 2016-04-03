@@ -64,7 +64,7 @@ def transform_state_attack(gamestate, ai_turn=True):
     active_pokemon = gamestate[curr]
     for i,move in enumerate(active_pokemon.moves):
         next_ = copy.deepcopy(gamestate)
-        states = next_[curr].moves[i].use_move(next_)
+        states = next_[curr].moves[i].use_move(next_, ai_turn)
         desc = [('move', move.name)]
         for state in states:
             next_states.append([state, desc])
@@ -160,7 +160,7 @@ class Node:
             self.children.append(Node(state[0], state[1]))
 
     def __str__(self, level=0):
-        ret = "\t" * level + "{%s, %s, val:%s}\n" % (str(len(self.gamestate)),str(self.description), 
+        ret = "\t" * level + "{%s, %s, val:%s}\n" % (str(self.gamestate),str(self.description), 
                                                            str(self.value))
         for c in self.children:
             ret += c.__str__(level+1)
