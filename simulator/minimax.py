@@ -188,6 +188,3 @@ def move_for_gamestate(gamestate, depth=MAX_DEPTH):
     tree.backprop()
     best_move = [c for c in tree.children if c.value == tree.value][0]
     return best_move.description
-
-def test():
-    print simulate.data_moves['toxic-spikes']['effect_chance']
