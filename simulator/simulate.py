@@ -29,14 +29,8 @@ def calc_damage(attacker, defender, move, crit=False):
     crit = 2 if crit else 1
     rand = 0.925
     modifier = stab * type_ * crit * rand
-    damage = 0
-    try:
-        damage = (2 * attacker.lvl + 10) / 250.0 * atk / float(def_) * move.base_power + 2
-        damage *= modifier
-    except:
-        print "ERROR calculating damage: attacker:{0} defender:{1} move:{2}".format(attacker, defender, move)
-        print "(2 * attacker.lvl + 10) / 250.0 * atk / float(def_) * move.base_power + 2. atk={0}, def_={1}, move.base_power={2}.".format(atk, def_, move.base_power)
-        sys.exit(1)
+    damage = (2 * attacker.lvl + 10) / 250.0 * atk / float(def_) * move.base_power + 2
+    damage *= modifier
     return int(damage)
 
 class Pokemon:
