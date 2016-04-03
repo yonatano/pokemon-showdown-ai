@@ -181,25 +181,35 @@ class Move:
         gamestate = copy.deepcopy(gamestate)
         active_self = gamestate[0]
         active_opp = gamestate[TEAMSZ]
-        self.pp -= 1
 
-        if self.has_effect: #this move has an abstract effect
+        if self.pp <= 0 or active_self is None:
+            return []
+
+        if self.has_effect:
+            """this move has an abstract effect"""
             pass #implement later, for Protect, etc.
 
-        if self.name in data_stage_mults: #this move invokes a stat stage multiplier
+        if self.name in data_stage_mults:
+            """this move invokes a stat stage multiplier"""
             mults = data_stage_mults[self.name]
             for stat, mult_self, mult_opp in zip(active_self.stats(), mults['user'], 
                                              mults['opponent']):
                 curr_self = active_self.stage_multipliers[stat]
-                curr_opp = active_opp.stage_multipliers[stat]
                 active_self.stage_multipliers[stat] = max(min(6, curr_self + mult_self), -6) #clamp multiplier between -6, 6
-                active_opp.stage_multipliers[stat] = max(min(6, curr_opp + mult_opp), -6)
+                if active_opp is not None:
+                    curr_opp = active_opp.stage_multipliers[stat]
+                    active_opp.stage_multipliers[stat] = max(min(6, curr_opp + mult_opp), -6)
 
-        if self.base_power > 0: #this move does some damage
+        if self.base_power > 0 and active_opp is not None:
+            """this move does some damage"""
             dmg = calc_damage(active_self, active_opp, self)
             hit_rate = self.accuracy * active_self.accuracy / active_opp.evasion
             active_opp.hp -= dmg * min(100.0, hit_rate) / 100.0 #weight damage by move accuracy
+            
+            if active_opp.hp <= 0:
+                gamestate[TEAMSZ] = None
 
+        self.pp -= 1
         results.append(gamestate)
         return results
 

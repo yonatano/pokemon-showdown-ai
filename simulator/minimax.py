@@ -67,10 +67,6 @@ def transform_state_attack(gamestate, ai_turn=True):
         states = next_[curr].moves[i].use_move(next_)
         desc = [('move', move.name)]
         for state in states:
-            if state[curr].hp <= 0:
-                state[curr] = None
-            if state[opp].hp <= 0:
-                state[opp] = None
             next_states.append([state, desc])
     return next_states
 
