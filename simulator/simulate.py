@@ -1,6 +1,7 @@
 """
 Used to simulate a random pokemon battle as per the rules of PokemonShowdown.
 """
+import sys
 import os
 import re
 import copy
@@ -28,8 +29,14 @@ def calc_damage(attacker, defender, move, crit=False):
     crit = 2 if crit else 1
     rand = 0.925
     modifier = stab * type_ * crit * rand
-    damage = (2 * attacker.lvl + 10) / 250.0 * atk / float(def_) * move.base_power + 2
-    damage *= modifier
+    damage = 0
+    try:
+        damage = (2 * attacker.lvl + 10) / 250.0 * atk / float(def_) * move.base_power + 2
+        damage *= modifier
+    except:
+        print "ERROR calculating damage: attacker:{0} defender:{1} move:{2}".format(attacker, defender, move)
+        print "(2 * attacker.lvl + 10) / 250.0 * atk / float(def_) * move.base_power + 2. atk={0}, def_={1}, move.base_power={2}.".format(atk, def_, move.base_power)
+        sys.exit(1)
     return int(damage)
 
 class Pokemon:
@@ -56,8 +63,8 @@ class Pokemon:
 
     def get(self, stat):
         """get the Pokemon's stat and adjust for stage multiplier"""
-        formula_stat = lambda base, mult: base * (2 + mult) / 2.0
-        formula_acc = lambda base, mult: base * (3 + mult) / 3.0
+        formula_stat = lambda base, mult: base * (2 + max(mult, 0)) / (2.0 - min(mult, 0))
+        formula_acc = lambda base, mult: base * (3 + max(mult, 0)) / (3.0 - min(mult, 0))
         formula_eva = lambda base, mult: formula_acc(base, -mult)
 
         base = getattr(self, stat)
@@ -142,7 +149,7 @@ class Pokemon:
         return "<%s>" % self.__str__()
 
     def __str__(self):
-        return "%s hp:%s" % (self.name, self.hp)
+        return "%s hp:%s stats:\n%s" % (self.name, self.hp, {s:getattr(self, s) for s in self.stats()})
 
 class Move:
     def __init__(self, name, base_power=None, accuracy=None, pp=None, type_=None, placeholder=False):
@@ -205,7 +212,7 @@ class Move:
             dmg = calc_damage(active_self, active_opp, self)
             hit_rate = self.accuracy * active_self.accuracy / active_opp.evasion
             active_opp.hp -= dmg * min(100.0, hit_rate) / 100.0 #weight damage by move accuracy
-            
+
             if active_opp.hp <= 0:
                 gamestate[TEAMSZ] = None
 
