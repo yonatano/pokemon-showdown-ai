@@ -114,6 +114,9 @@ class ShowdownBattle(DynamicWebPage):
             'setname_btn_open'      :(By.XPATH, '//button[@name="login"]'),
             'setname_txt'           :(By.XPATH, '//div[@class="ps-popup"]//input'),
             'setname_btn_submit'    :(By.XPATH, '//div[@class="ps-popup"]//button[@type="submit"]'),
+            'searchname_btn_open'   :(By.XPATH, '//button[@class="button mainmenu5 onlineonly"]'),
+            'challenge_user_btn'    :(By.XPATH, '//div[@class="ps-popup"]//button[@name="challenge"]'),
+            'challenge_user_confirm':(By.XPATH, '//div[@class="pm-window pm-window-%s"]//button[@name="makeChallenge"]'),      
             'curr_name'             :(By.XPATH, '//span[@class="username"]'),
             'startbattle_btn'       :(By.XPATH, '//button[@class="button mainmenu1 big"]'),
             'battle_moves_btns'     :(By.XPATH, '//div[@class="movemenu"]/button'),
@@ -126,6 +129,10 @@ class ShowdownBattle(DynamicWebPage):
             'battle-log-last-line'  :(By.XPATH, '(//div[@class="battle-log"]/div[@class="inner"]/*)[last()]')
         }
         self.timeout = timeout
+
+
+        
+
 
     def __enter__(self):
         self.load()
@@ -164,9 +171,25 @@ class ShowdownBattle(DynamicWebPage):
         self.wait_until_equals(self.LOCATORS['curr_name'], " {}".format(name), 
                 attr='data-name') #confirm name updated
 
+    def challenge_user(self, name):
+        searchname_btn_open = self.get_when_present(self.LOCATORS['searchname_btn_open'])
+        searchname_btn_open.click()
+        searchname_txt = self.get_when_present(self.LOCATORS['setname_txt'])
+        searchname_txt.send_keys(name)
+        searchname_btn = self.get_when_present(self.LOCATORS['setname_btn_submit'])
+        searchname_btn.click()
+        challenge_user_btn = self.get_when_present(self.LOCATORS['challenge_user_btn'])
+        challenge_user_btn.click()
+        challenge_locator = (self.LOCATORS['challenge_user_confirm'][0], self.LOCATORS['challenge_user_confirm'][1] % name)
+        challenge_user_confirm = self.get_when_present(challenge_locator)
+        challenge_user_confirm.click()
+
     def start_battle(self):
         startbattle_btn = self.get_when_present(self.LOCATORS['startbattle_btn'])
         startbattle_btn.click()
+        self.wait_until_equals(self.LOCATORS['turn_count'], "Turn 1")
+
+    def wait_for_battle(self):
         self.wait_until_equals(self.LOCATORS['turn_count'], "Turn 1")
 
     def get_battle_log(self):
