@@ -174,6 +174,7 @@ class Move:
         self.damage_class = move['damage_class']['name']
         self.effect_chance = 1.0 if move['effect_chance'] is None else move['effect_chance'] / 100.0
         self.has_effect = move['effect_chance'] is not None
+        self.meta = move['meta']
 
     def use_move(self, gamestate, ai_turn=True):
         """
@@ -187,10 +188,6 @@ class Move:
 
         if self.pp <= 0 or active_self is None:
             return []
-
-        if self.has_effect:
-            """this move has an abstract effect"""
-            pass #implement later, for Protect, etc.
 
         if self.name in data_stage_mults and USE_STAT_MULT:
             """this move invokes a stat stage multiplier"""
@@ -211,6 +208,17 @@ class Move:
 
             if active_opp.hp <= 0:
                 gamestate[opp] = None
+
+    
+        """apply any abstract effects"""
+        if self.meta['healing'] != 0:
+            active_self.hp = min(active_self.totalhp, 
+                active_self.hp + active_self.totalhp * self.meta['healing'] / 100.0)
+
+        if self.meta['drain'] != 0:
+            dmg = calc_damage(active_self, active_opp, self)
+            active_self.hp = min(active_self.totalhp, 
+                active_self.hp + dmg * self.meta['drain'] / 100.0)
 
         self.pp -= 1
         results.append(gamestate)
@@ -266,8 +274,8 @@ def avg_pokemon():
 
 def e_team():
     team = []
-    team.append(Pokemon('heracross', 100, 301, 301, 286, 186, 116, 226, 206, ['fighting', 'bug'], ['growth', 'superpower', 'body-slam', 'megahorn']))
-    team.append(Pokemon('cubone', 100, 241, 241, 136, 226, 116, 136, 106, ['ground'], ['meteor-mash', 'tickle', 'fire-punch', 'body-slam']))
+    team.append(Pokemon('heracross', 100, 301, 301, 286, 186, 116, 226, 206, ['fighting', 'bug'], ['growth', 'heal-order', 'body-slam', 'megahorn']))
+    team.append(Pokemon('cubone', 100, 241, 241, 136, 226, 116, 136, 106, ['ground'], ['meteor-mash', 'giga-drain', 'fire-punch', 'body-slam']))
 
     return team
 
