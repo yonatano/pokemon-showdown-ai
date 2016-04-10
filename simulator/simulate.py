@@ -9,6 +9,7 @@ import random
 import operator
 import simplejson as json
 
+USE_STAT_MULT = False
 TEAMSZ = 6
 
 data = os.path.join(os.path.dirname(__file__), '../data')
@@ -122,8 +123,8 @@ class Pokemon:
 
     def __values(self):
         #cmp_attrs = [a for a in self.attrs() if a not in ['hp', 'atk', 'def_', 'spatk', 'spdef', 'speed']]
-        cmp_attrs = ['name']
-        return (getattr(self, attr) for attr in cmp_attrs)
+        #cmp_attrs = ['name']
+        return (getattr(self, attr) for attr in self.attrs())
 
     def __cmp__(self, other):
         for s, o in zip(self.__values(), other.__values()):
@@ -143,7 +144,7 @@ class Pokemon:
         return "<%s>" % self.__str__()
 
     def __str__(self):
-        return "%s hp:%s" % (self.name, self.hp)
+        return "{0}: {1}%".format(self.name, int(self.hp / float(self.totalhp) * 100))
 
 class Move:
     def __init__(self, name, base_power=None, accuracy=None, pp=None, type_=None, placeholder=False):
@@ -191,7 +192,7 @@ class Move:
             """this move has an abstract effect"""
             pass #implement later, for Protect, etc.
 
-        if self.name in data_stage_mults:
+        if self.name in data_stage_mults and USE_STAT_MULT:
             """this move invokes a stat stage multiplier"""
             mults = data_stage_mults[self.name]
             for stat, mult_self, mult_opp in zip(active_self.stats(), mults['user'], 
@@ -210,7 +211,7 @@ class Move:
 
             if active_opp.hp <= 0:
                 gamestate[opp] = None
-                
+
         self.pp -= 1
         results.append(gamestate)
         return results
