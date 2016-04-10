@@ -42,22 +42,6 @@ def next_states(gamestate, ai_turn=True):
         states_attack = transform_state_attack(gamestate, ai_turn)
         next_states.extend(states_attack)
 
-    # if gamestate[curr] is None: #active pokemon fainted last turn
-    #     states_swap = transform_state_swap(gamestate, ai_turn)
-    #     for state, desc in states_swap: #force a swap and then attack or swap
-    #         states_attack = transform_state_attack(state, ai_turn)
-    #         states_swap = transform_state_swap(state, ai_turn)
-    #         states_total = states_attack + states_swap
-    #         for state_ in states_total:
-    #             new_desc = desc[:]
-    #             new_desc.extend(state_[1])
-    #             state_[1] = new_desc
-    #         next_states.extend(states_total)
-    # else: #possible moves are attack with active or swap it out
-    #     states_attack = transform_state_attack(gamestate, ai_turn)
-    #     states_swap = transform_state_swap(gamestate, ai_turn)
-    #     next_states.extend(states_attack + states_swap)
-    
     return next_states
 
 def transform_state_attack(gamestate, ai_turn=True):
@@ -141,22 +125,23 @@ def transform_state_swap(gamestate, ai_turn=True):
     return next_states
 
 class Node:
-    def __init__(self, gamestate, description=""):
+    def __init__(self, gamestate, description="", is_ai=True):
         self.gamestate = copy.deepcopy(gamestate)
         self.value = 0
         self.children = []
         self.description = description
+        self.is_ai = is_ai
 
-    def backprop(self, max_=True):
+    def backprop(self):
         """recursively calculate tree max/min's"""
         if self.children:
-            func = max if max_ else min
-            self.value = func([c.backprop(not max_) for c in self.children])
+            func = max if self.is_ai else min
+            self.value = func([c.backprop() for c in self.children])
         else:
             self.value = eval_function(self.gamestate)
         return self.value
 
-    def populate_children(self, seen, ai_turn=True):
+    def populate_children(self, seen, ai_turn):
         next = next_states(self.gamestate, ai_turn)
         vals = lambda p: "/".join([str(getattr(p, attr)) for attr in p.attrs()])
         encode = lambda game: "|".join([vals(p) if p is not None else "FAINTED_PKMN" for p in game])
@@ -164,10 +149,10 @@ class Node:
         seen.extend([encode(g[0]) for g in next])
 
         for state in next:
-            self.children.append(Node(state[0], state[1]))
+            self.children.append(Node(state[0], state[1], ai_turn))
 
     def __str__(self, level=0):
-        ret = "\t" * level + "{%s, %s, val:%s}\n" % (str(self.gamestate),str(self.description), 
+        ret = "\t" * level + "{[AI:%s] %s, %s, val:%s}\n" % (str(self.is_ai), str(self.gamestate),str(self.description), 
                                                            str(self.value))
         for c in self.children:
             ret += c.__str__(level+1)
@@ -176,25 +161,46 @@ class Node:
     def __repr__(self):
         return '<minimax tree node>'
 
+def is_ai_turn(gamestate):
+    """
+    If a player has a fainted pokemon, that player moves first (swap).
+    Otherwise, the player who moves first depends on the speed of the
+    pokemon in play.
+    """
+    if gamestate[0] is None:
+        return True
+
+    if gamestate[TEAMSZ] is None:
+        return False
+
+    return gamestate[0].speed >= gamestate[TEAMSZ].speed
+
 def generate_tree(startstate_, ai_turn=True, depth=MAX_DEPTH):
     startstate = copy.deepcopy(startstate_)
-    tree = Node(startstate)
+    tree = Node(startstate, is_ai=ai_turn)
     seen = []
     curr = [tree]
     for i in range(depth):
         for c in curr:
-            c.populate_children([], ai_turn)
+            if i % 2 == 0:
+                ai_turn = is_ai_turn(c.gamestate)
+            else:
+                ai_turn = not c.is_ai
+            c.populate_children(seen, ai_turn)
         curr_ = []
         [curr_.extend(c.children) for c in curr]
         curr = curr_
-        ai_turn = not ai_turn
     return tree
 
 def move_for_gamestate(gamestate, depth=MAX_DEPTH):
-    tree = generate_tree(gamestate, True, depth)
+    ai_turn = is_ai_turn(gamestate)
+    tree = generate_tree(gamestate, ai_turn, depth)
     tree.backprop()
-    best_move = [c for c in tree.children if c.value == tree.value][0]
-    return best_move.description
+    predicted_move = [c for c in tree.children if c.value == tree.value][0]
+    if tree.is_ai:
+        return predicted_move.description
+    else:
+        best_move = [c for c in predicted_move.children if c.value == predicted_move.value][0]
+        return best_move.description
 
-def test():
-    print simulate.data_moves['toxic-spikes']['effect_chance']
+    return None
