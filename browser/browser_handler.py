@@ -39,9 +39,8 @@ class DynamicWebPage(object):
     waits until page is loaded. Provides a generator interface to respond to
     real-time changes in the page.
     """
-    def __init__(self, driver, timeout=10):
+    def __init__(self, driver):
         self.driver = driver
-        self.timeout = timeout
 
     def get(self, locator):
         return self.driver.find_element(locator[0], locator[1])
@@ -85,16 +84,25 @@ class DynamicWebPage(object):
             return False
 
     def get_when_present(self, locator, timeout, mult=False):
-        try:
-            WebDriverWait(self.driver, timeout).until(
-                EC.presence_of_element_located(locator)
-            )
-            return self.get(locator) if not mult else self.get_mult(locator)
-        except (TimeoutException):
-            return None
+            try:
+                while True:
+                    if timeout != -1:
+                        WebDriverWait(self.driver, timeout).until(
+                            EC.presence_of_element_located(locator)
+                        )
+                        return self.get(locator) if not mult else self.get_mult(locator)
+                    else:
+                        while True:
+                            try:
+                                if EC.presence_of_element_located(locator):
+                                    return self.get(locator) if not mult else self.get_mult(locator)
+                            except:
+                                continue
+            except (TimeoutException):
+                return None
 
 class ShowdownBattle(DynamicWebPage):
-    def __init__(self):
+    def __init__(self, timeout):
         chrome_options = webdriver.ChromeOptions()
         prefs = {"profile.default_content_setting_values.notifications" : 2}
         chrome_options.add_experimental_option("prefs",prefs)
@@ -111,12 +119,13 @@ class ShowdownBattle(DynamicWebPage):
             'battle_moves_btns'     :(By.XPATH, '//div[@class="movemenu"]/button'),
             'battle_swap_btns'      :(By.XPATH, '//div[@class="switchmenu"]/button'),
             'turn_count'            :(By.XPATH, '(//h2[starts-with(text(), "Turn")])[last()]'),
-            'player_active'         :(By.XPATH, '//div[@class="statbar rstatbar"]/strong'),
-            'opponent_active'       :(By.XPATH, '//div[@class="statbar lstatbar"]/strong'),
+            'player_active'         :(By.XPATH, '//div[@class="statbar rstatbar"]'),
+            'opponent_active'       :(By.XPATH, '//div[@class="statbar lstatbar"]'),
             'tooltip'               :(By.XPATH, '//div[@class="tooltip"]'),
             'battle-log'            :(By.XPATH, '//div[@class="battle-log"]/div[@class="inner"]'),
             'battle-log-last-line'  :(By.XPATH, '(//div[@class="battle-log"]/div[@class="inner"]/*)[last()]')
         }
+        self.timeout = timeout
 
     def __enter__(self):
         self.load()
@@ -130,19 +139,19 @@ class ShowdownBattle(DynamicWebPage):
         self.driver.get(self.BASE)
 
     def on_change(self, locator, timeout=None):
-        timeout = self.timeout if timeout is None else timeout
+        timeout = self.timeout if not timeout else timeout
         return super(ShowdownBattle, self).on_change(locator, timeout)
 
     def wait_until_equals(self, locator, target, attr=None, timeout=None):
-        timeout = self.timeout if timeout is None else timeout
+        timeout = self.timeout if not timeout else timeout
         return super(ShowdownBattle, self).wait_until_equals(locator, target, attr, timeout)
 
     def get_when_present(self, locator, timeout=None):
-        timeout = self.timeout if timeout is None else timeout
+        timeout = self.timeout if not timeout else timeout
         return super(ShowdownBattle, self).get_when_present(locator, timeout)
 
     def get_all_when_present(self, locator, timeout=None):
-        timeout = self.timeout if timeout is None else timeout
+        timeout = self.timeout if not timeout else timeout
         return super(ShowdownBattle, self).get_when_present(locator, timeout, mult=True)
 
     def set_name(self, name):
@@ -204,9 +213,18 @@ class ShowdownBattle(DynamicWebPage):
         return team
 
     def get_active_pokemon(self):
-        p_active = self.get_when_present(self.LOCATORS['player_active']).text.split(" ")
-        o_active = self.get_when_present(self.LOCATORS['opponent_active']).text.split(" ")
-        return p_active, o_active
+        p_active = self.get_when_present(self.LOCATORS['player_active'])
+        o_active = self.get_when_present(self.LOCATORS['opponent_active'])
+
+        p_name, p_lvl = p_active.find_element_by_xpath('.//strong').text.split(" ")
+        p_hp = p_active.find_element_by_xpath('.//div[@class="hpbar"]/div[@class="hptext"]').text
+        p_stat = [el.text for el in p_active.find_elements_by_xpath('.//div[@class="hpbar"]/div[@class="status"]/span')]
+
+        o_name, o_lvl = o_active.find_element_by_xpath('.//strong').text.split(" ")
+        o_hp = o_active.find_element_by_xpath('.//div[@class="hpbar"]/div[@class="hptext"]').text
+        o_stat = [el.text for el in o_active.find_elements_by_xpath('.//div[@class="hpbar"]/div[@class="status"]/span')]
+
+        return (p_name, int(p_lvl[1:]), int(p_hp[:-1]), p_stat), (o_name, int(o_lvl[1:]), int(o_hp[:-1]), o_stat)
 
     def battle_use_move(self, index):
         moves = self.get_all_when_present(self.LOCATORS['battle_moves_btns'])
