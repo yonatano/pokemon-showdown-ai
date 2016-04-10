@@ -10,8 +10,6 @@ import simulate
 import simplejson as json
 MAX_DEPTH = 10
 TEAMSZ = 6
-data = simulate.os.path.join(simulate.os.path.dirname(__file__), '../data')
-effects = json.loads(open('%s/move_effects.json' % data, 'r').read())
 
 def avg(l):
     return sum(l) / float(len(l)) if len(l) > 0 else 0
@@ -38,21 +36,28 @@ def next_states(gamestate, ai_turn=True):
     curr, opponent = 0 if ai_turn else TEAMSZ, TEAMSZ if ai_turn else 0
     next_states = []
 
-    if gamestate[curr] is None: #active pokemon fainted last turn
-        states_swap = transform_state_swap(gamestate, ai_turn)
-        for state, desc in states_swap: #force a swap and then attack or swap
-            states_attack = transform_state_attack(state, ai_turn)
-            states_swap = transform_state_swap(state, ai_turn)
-            states_total = states_attack + states_swap
-            for state_ in states_total:
-                new_desc = desc[:]
-                new_desc.extend(state_[1])
-                state_[1] = new_desc
-            next_states.extend(states_total)
-    else: #possible moves are attack with active or swap it out
+    states_swap = transform_state_swap(gamestate, ai_turn)
+    next_states.extend(states_swap)
+    if gamestate[curr]:
         states_attack = transform_state_attack(gamestate, ai_turn)
-        states_swap = transform_state_swap(gamestate, ai_turn)
-        next_states.extend(states_attack + states_swap)
+        next_states.extend(states_attack)
+
+    # if gamestate[curr] is None: #active pokemon fainted last turn
+    #     states_swap = transform_state_swap(gamestate, ai_turn)
+    #     for state, desc in states_swap: #force a swap and then attack or swap
+    #         states_attack = transform_state_attack(state, ai_turn)
+    #         states_swap = transform_state_swap(state, ai_turn)
+    #         states_total = states_attack + states_swap
+    #         for state_ in states_total:
+    #             new_desc = desc[:]
+    #             new_desc.extend(state_[1])
+    #             state_[1] = new_desc
+    #         next_states.extend(states_total)
+    # else: #possible moves are attack with active or swap it out
+    #     states_attack = transform_state_attack(gamestate, ai_turn)
+    #     states_swap = transform_state_swap(gamestate, ai_turn)
+    #     next_states.extend(states_attack + states_swap)
+    
     return next_states
 
 def transform_state_attack(gamestate, ai_turn=True):
@@ -65,23 +70,17 @@ def transform_state_attack(gamestate, ai_turn=True):
 
     active_pokemon = gamestate[curr]
     for i,move in enumerate(active_pokemon.moves):
-        if move.pp > 0:
-            next_ = copy.deepcopy(gamestate)
-            dmg = simulate.calc_damage(active_pokemon, next_[opp], move)
-            next_[curr].moves[i].pp -= 1
-            next_[opp].hp -= dmg
-            update_stat_stages(next_[curr], next_[opp], move) #need to test in tree setting
-            desc = [('move', move.name)]
-            if next_[opp].hp <= 0:
-                next_[opp] = None
-            next_states.append([next_, desc])
-
+        next_ = copy.deepcopy(gamestate)
+        states = next_[curr].moves[i].use_move(next_, ai_turn)
+        desc = [('move', move.name)]
+        for state in states:
+            next_states.append([state, desc])
     return next_states
 
 def update_stat_stages(current, opponent, move):
     effect_lists = effects.get(move.name, [])
     if len(effect_lists) == 0:
-        return None
+        return None 
     effect_chance = move.effect_chance
     rand = simulate.random.randrange(1, 101)
     if effect_chance is None or rand <= effect_chance:
@@ -168,7 +167,7 @@ class Node:
             self.children.append(Node(state[0], state[1]))
 
     def __str__(self, level=0):
-        ret = "\t" * level + "{%s, %s, val:%s}\n" % (str(len(self.gamestate)),str(self.description), 
+        ret = "\t" * level + "{%s, %s, val:%s}\n" % (str(self.gamestate),str(self.description), 
                                                            str(self.value))
         for c in self.children:
             ret += c.__str__(level+1)
@@ -184,7 +183,7 @@ def generate_tree(startstate_, ai_turn=True, depth=MAX_DEPTH):
     curr = [tree]
     for i in range(depth):
         for c in curr:
-            c.populate_children(seen, ai_turn)
+            c.populate_children([], ai_turn)
         curr_ = []
         [curr_.extend(c.children) for c in curr]
         curr = curr_
@@ -195,7 +194,7 @@ def move_for_gamestate(gamestate, depth=MAX_DEPTH):
     tree = generate_tree(gamestate, True, depth)
     tree.backprop()
     best_move = [c for c in tree.children if c.value == tree.value][0]
-    return best_move.description, tree
+    return best_move.description
 
 def test():
     print simulate.data_moves['toxic-spikes']['effect_chance']
