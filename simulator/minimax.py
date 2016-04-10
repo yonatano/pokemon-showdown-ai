@@ -36,21 +36,28 @@ def next_states(gamestate, ai_turn=True):
     curr, opponent = 0 if ai_turn else TEAMSZ, TEAMSZ if ai_turn else 0
     next_states = []
 
-    if gamestate[curr] is None: #active pokemon fainted last turn
-        states_swap = transform_state_swap(gamestate, ai_turn)
-        for state, desc in states_swap: #force a swap and then attack or swap
-            states_attack = transform_state_attack(state, ai_turn)
-            states_swap = transform_state_swap(state, ai_turn)
-            states_total = states_attack + states_swap
-            for state_ in states_total:
-                new_desc = desc[:]
-                new_desc.extend(state_[1])
-                state_[1] = new_desc
-            next_states.extend(states_total)
-    else: #possible moves are attack with active or swap it out
+    states_swap = transform_state_swap(gamestate, ai_turn)
+    next_states.extend(states_swap)
+    if gamestate[curr]:
         states_attack = transform_state_attack(gamestate, ai_turn)
-        states_swap = transform_state_swap(gamestate, ai_turn)
-        next_states.extend(states_attack + states_swap)
+        next_states.extend(states_attack)
+
+    # if gamestate[curr] is None: #active pokemon fainted last turn
+    #     states_swap = transform_state_swap(gamestate, ai_turn)
+    #     for state, desc in states_swap: #force a swap and then attack or swap
+    #         states_attack = transform_state_attack(state, ai_turn)
+    #         states_swap = transform_state_swap(state, ai_turn)
+    #         states_total = states_attack + states_swap
+    #         for state_ in states_total:
+    #             new_desc = desc[:]
+    #             new_desc.extend(state_[1])
+    #             state_[1] = new_desc
+    #         next_states.extend(states_total)
+    # else: #possible moves are attack with active or swap it out
+    #     states_attack = transform_state_attack(gamestate, ai_turn)
+    #     states_swap = transform_state_swap(gamestate, ai_turn)
+    #     next_states.extend(states_attack + states_swap)
+    
     return next_states
 
 def transform_state_attack(gamestate, ai_turn=True):
@@ -176,7 +183,7 @@ def generate_tree(startstate_, ai_turn=True, depth=MAX_DEPTH):
     curr = [tree]
     for i in range(depth):
         for c in curr:
-            c.populate_children(seen, ai_turn)
+            c.populate_children([], ai_turn)
         curr_ = []
         [curr_.extend(c.children) for c in curr]
         curr = curr_
